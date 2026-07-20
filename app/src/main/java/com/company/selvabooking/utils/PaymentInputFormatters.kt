@@ -6,7 +6,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 object PaymentInputFormatters {
 
     fun formatCardNumber(value: TextFieldValue): TextFieldValue {
-        val digits = value.text.filter { it.isDigit() }.take(19)
+        val digits = value.text.filter { it.isDigit() }.take(16)
         val formatted = digits.chunked(4).joinToString(" ")
         val cursor = cursorAfterDigits(
             source = value.text,

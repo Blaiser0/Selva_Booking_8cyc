@@ -7,6 +7,7 @@ object Constants {
     const val COLLECTION_HOTELES = "hoteles"
     const val COLLECTION_HABITACIONES = "habitaciones"
     const val COLLECTION_RESERVAS = "reservas"
+    const val COLLECTION_RESENAS = "resenas"
 
     const val STORAGE_HOTELES = "hoteles"
     const val STORAGE_HABITACIONES = "habitaciones"

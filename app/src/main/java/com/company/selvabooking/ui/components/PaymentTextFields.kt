@@ -1,5 +1,7 @@
 package com.company.selvabooking.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -7,6 +9,9 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -24,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.company.selvabooking.ui.theme.ForestGreen
 import com.company.selvabooking.utils.PaymentInputFormatters
 import kotlinx.coroutines.launch
 
@@ -65,24 +71,79 @@ fun PaymentCardExpiryField(
     error: String? = null,
     resetKey: Any? = null
 ) {
-    var fieldValue by remember { mutableStateOf(TextFieldValue(value)) }
+    var showPicker by remember { mutableStateOf(false) }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(resetKey) {
-        fieldValue = TextFieldValue(value)
+        showPicker = false
     }
 
-    PaymentOutlinedField(
-        value = fieldValue,
-        onValueChange = { updated ->
-            val formatted = PaymentInputFormatters.formatCardExpiry(updated)
-            fieldValue = formatted
-            onValueChange(formatted.text)
-        },
-        label = label,
-        modifier = modifier,
-        error = error,
-        keyboardType = KeyboardType.Number
-    )
+    if (showPicker) {
+        CardExpiryPickerDialog(
+            initialValue = value,
+            onDismiss = { showPicker = false },
+            onConfirm = { selected ->
+                onValueChange(selected)
+                showPicker = false
+            }
+        )
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(bringIntoViewRequester)
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                placeholder = { Text("MM/AA") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = error != null,
+                singleLine = true,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Seleccionar vencimiento",
+                        tint = ForestGreen
+                    )
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    disabledContainerColor = MaterialTheme.colorScheme.background,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(onClick = { showPicker = true })
+                    .onFocusEvent { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                bringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    }
+            )
+        }
+        if (error != null) {
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }
 
 @Composable

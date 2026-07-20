@@ -274,8 +274,16 @@ fun SelvaNavGraph(
                 ) { backStackEntry ->
                     val hotelId = backStackEntry.arguments?.getString("hotelId") ?: return@composable
                     val app = LocalContext.current.applicationContext as android.app.Application
+                    val currentUser = authState.currentUser
                     val detailViewModel: HotelDetailViewModel = viewModel(
-                        factory = viewModelFactory { HotelDetailViewModel(app, hotelId) }
+                        factory = viewModelFactory {
+                            HotelDetailViewModel(
+                                application = app,
+                                hotelId = hotelId,
+                                userId = currentUser?.id,
+                                userName = currentUser?.nombre
+                            )
+                        }
                     )
                     HotelDetailScreen(
                         viewModel = detailViewModel,

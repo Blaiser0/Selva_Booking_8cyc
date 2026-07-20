@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
@@ -52,6 +53,8 @@ import com.company.selvabooking.domain.model.User
 import com.company.selvabooking.domain.model.UserRole
 import com.company.selvabooking.ui.components.ErrorMessage
 import com.company.selvabooking.ui.components.LoadingIndicator
+import com.company.selvabooking.ui.components.PaymentMethodForm
+import com.company.selvabooking.ui.components.SavedPaymentCardSummary
 import com.company.selvabooking.ui.components.SelvaButton
 import com.company.selvabooking.ui.components.SelvaOutlinedButton
 import com.company.selvabooking.ui.components.SelvaScaffold
@@ -61,6 +64,7 @@ import com.company.selvabooking.ui.components.SuccessMessage
 import com.company.selvabooking.ui.theme.CreamSurfaceVariant
 import com.company.selvabooking.ui.theme.ForestGreen
 import com.company.selvabooking.ui.theme.LightText
+import com.company.selvabooking.viewmodel.ProfileUiState
 import com.company.selvabooking.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +85,30 @@ fun ProfileScreen(
 
     LaunchedEffect(uiState.user?.id, uiState.user?.rol, uiState.user?.fotoUrl) {
         uiState.user?.let { onUserUpdated(it) }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshSavedPaymentMethod()
+    }
+
+    if (uiState.showDeletePaymentMethodDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeletePaymentMethodDialog,
+            title = { Text("Eliminar método de pago") },
+            text = {
+                Text("¿Deseas eliminar tu tarjeta guardada? Tendrás que ingresar los datos en tu próxima compra.")
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmDeletePaymentMethod) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeletePaymentMethodDialog) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     if (showLogoutDialog) {
@@ -328,6 +356,11 @@ fun ProfileScreen(
                         }
                     }
 
+                    ProfilePaymentMethodSection(
+                        uiState = uiState,
+                        viewModel = viewModel
+                    )
+
                     if (uiState.successMessage != null) {
                         SuccessMessage(uiState.successMessage!!)
                     }
@@ -362,6 +395,117 @@ fun ProfileScreen(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfilePaymentMethodSection(
+    uiState: ProfileUiState,
+    viewModel: ProfileViewModel
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CreditCard,
+                    contentDescription = null,
+                    tint = ForestGreen,
+                    modifier = Modifier.size(22.dp)
+                )
+                Text(
+                    text = "Método de pago",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            when {
+                uiState.isEditingPaymentMethod -> {
+                    Text(
+                        text = if (uiState.savedPaymentCard == null) {
+                            "Agregue su tarjeta para usarla en futuras reservas."
+                        } else {
+                            "Actualice los datos de su tarjeta. Ingrese el número completo para modificar."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    PaymentMethodForm(
+                        state = uiState.paymentForm,
+                        onCardNumberChange = viewModel::updatePaymentCardNumber,
+                        onCardExpiryChange = viewModel::updatePaymentCardExpiry,
+                        onCardCvcChange = {},
+                        onCardholderNameChange = viewModel::updatePaymentCardholderName,
+                        onAddressLine1Change = viewModel::updatePaymentAddressLine1,
+                        onAddressLine2Change = viewModel::updatePaymentAddressLine2,
+                        onDistrictChange = viewModel::updatePaymentDistrict,
+                        onPostalCodeChange = viewModel::updatePaymentPostalCode,
+                        showCvc = false,
+                        cardNumberLabel = if (uiState.savedPaymentCard == null) {
+                            "1234 1234 1234 1234"
+                        } else {
+                            "Ingrese el número completo de la tarjeta"
+                        },
+                        resetKey = uiState.isEditingPaymentMethod
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SelvaOutlinedButton(
+                            text = "Cancelar",
+                            onClick = viewModel::cancelPaymentMethodEdit,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SelvaButton(
+                            text = if (uiState.isSavingPaymentMethod) "Guardando..." else "Guardar",
+                            onClick = viewModel::savePaymentMethod,
+                            enabled = !uiState.isSavingPaymentMethod,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                uiState.savedPaymentCard != null -> {
+                    SavedPaymentCardSummary(card = uiState.savedPaymentCard)
+                    SelvaOutlinedButton(
+                        text = "Modificar",
+                        onClick = viewModel::startEditPaymentMethod
+                    )
+                    SelvaOutlinedButton(
+                        text = "Eliminar",
+                        onClick = viewModel::requestDeletePaymentMethod
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "No tienes un método de pago guardado. Puedes agregarlo aquí y usarlo en tus próximas reservas.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    SelvaButton(
+                        text = "Agregar método de pago",
+                        onClick = viewModel::startAddPaymentMethod
+                    )
                 }
             }
         }

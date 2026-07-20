@@ -7,7 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.company.selvabooking.SelvaBookingApplication
 import com.company.selvabooking.domain.model.User
 import com.company.selvabooking.domain.model.UserRole
+import com.company.selvabooking.domain.model.PaymentMethodFormState
+import com.company.selvabooking.domain.model.SavedPaymentCard
+import com.company.selvabooking.domain.model.toFormState
+import com.company.selvabooking.domain.model.toSavedPaymentCard
 import com.company.selvabooking.repository.AuthRepository
+import com.company.selvabooking.repository.SavedCardRepository
+import com.company.selvabooking.utils.MadreDeDiosDistricts
+import com.company.selvabooking.utils.PaymentMethodFormValidator
 import com.company.selvabooking.utils.ValidationUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +34,12 @@ data class ProfileUiState(
     val showSwitchToAdminDialog: Boolean = false,
     val nombreError: String? = null,
     val successMessage: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val savedPaymentCard: SavedPaymentCard? = null,
+    val isEditingPaymentMethod: Boolean = false,
+    val paymentForm: PaymentMethodFormState = PaymentMethodFormState(),
+    val isSavingPaymentMethod: Boolean = false,
+    val showDeletePaymentMethodDialog: Boolean = false
 )
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,11 +47,25 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val authRepository: AuthRepository =
         (application as SelvaBookingApplication).authRepository
 
+    private val savedCardRepository: SavedCardRepository =
+        (application as SelvaBookingApplication).savedCardRepository
+
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
         loadProfile()
+        loadSavedPaymentMethod()
+    }
+
+    private fun loadSavedPaymentMethod() {
+        _uiState.update { it.copy(savedPaymentCard = savedCardRepository.getSavedCard()) }
+    }
+
+    fun refreshSavedPaymentMethod() {
+        if (!_uiState.value.isEditingPaymentMethod) {
+            loadSavedPaymentMethod()
+        }
     }
 
     fun loadProfile(onSynced: ((User) -> Unit)? = null) {
@@ -293,5 +319,139 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun clearMessages() {
         _uiState.update { it.copy(successMessage = null, error = null) }
+    }
+
+    fun startAddPaymentMethod() {
+        val userName = _uiState.value.user?.nombre.orEmpty()
+        _uiState.update {
+            it.copy(
+                isEditingPaymentMethod = true,
+                paymentForm = PaymentMethodFormState(cardholderName = userName),
+                successMessage = null,
+                error = null
+            )
+        }
+    }
+
+    fun startEditPaymentMethod() {
+        val card = _uiState.value.savedPaymentCard ?: return
+        _uiState.update {
+            it.copy(
+                isEditingPaymentMethod = true,
+                paymentForm = card.toFormState(),
+                successMessage = null,
+                error = null
+            )
+        }
+    }
+
+    fun cancelPaymentMethodEdit() {
+        _uiState.update {
+            it.copy(
+                isEditingPaymentMethod = false,
+                paymentForm = PaymentMethodFormState(),
+                isSavingPaymentMethod = false
+            )
+        }
+    }
+
+    fun updatePaymentCardNumber(value: String) {
+        _uiState.update {
+            it.copy(paymentForm = it.paymentForm.copy(cardNumber = value, cardNumberError = null))
+        }
+    }
+
+    fun updatePaymentCardExpiry(value: String) {
+        _uiState.update {
+            it.copy(paymentForm = it.paymentForm.copy(cardExpiry = value, cardExpiryError = null))
+        }
+    }
+
+    fun updatePaymentCardholderName(value: String) {
+        _uiState.update {
+            it.copy(paymentForm = it.paymentForm.copy(cardholderName = value, cardholderNameError = null))
+        }
+    }
+
+    fun updatePaymentAddressLine1(value: String) {
+        _uiState.update {
+            it.copy(paymentForm = it.paymentForm.copy(addressLine1 = value, addressLine1Error = null))
+        }
+    }
+
+    fun updatePaymentAddressLine2(value: String) {
+        _uiState.update { it.copy(paymentForm = it.paymentForm.copy(addressLine2 = value)) }
+    }
+
+    fun updatePaymentDistrict(value: String) {
+        _uiState.update { state ->
+            val form = state.paymentForm
+            state.copy(
+                paymentForm = form.copy(
+                    district = value,
+                    districtError = null,
+                    postalCode = MadreDeDiosDistricts.resolvePostalCodeOnDistrictChange(
+                        district = value,
+                        currentPostalCode = form.postalCode
+                    ),
+                    postalCodeError = null
+                )
+            )
+        }
+    }
+
+    fun updatePaymentPostalCode(value: String) {
+        _uiState.update {
+            it.copy(paymentForm = it.paymentForm.copy(postalCode = value, postalCodeError = null))
+        }
+    }
+
+    fun savePaymentMethod() {
+        val normalizedForm = PaymentMethodFormValidator.normalizeBillingState(_uiState.value.paymentForm)
+        if (normalizedForm != _uiState.value.paymentForm) {
+            _uiState.update { it.copy(paymentForm = normalizedForm) }
+        }
+
+        val validationErrors = PaymentMethodFormValidator.validate(
+            state = normalizedForm,
+            requireCvc = false,
+            requireCardNumber = true
+        )
+        if (validationErrors != null) {
+            _uiState.update { it.copy(paymentForm = validationErrors) }
+            return
+        }
+
+        val savedCard = normalizedForm.toSavedPaymentCard() ?: return
+        savedCardRepository.saveCard(savedCard)
+        _uiState.update {
+            it.copy(
+                savedPaymentCard = savedCardRepository.getSavedCard(),
+                isEditingPaymentMethod = false,
+                paymentForm = PaymentMethodFormState(),
+                successMessage = "Método de pago guardado correctamente"
+            )
+        }
+    }
+
+    fun requestDeletePaymentMethod() {
+        _uiState.update { it.copy(showDeletePaymentMethodDialog = true) }
+    }
+
+    fun dismissDeletePaymentMethodDialog() {
+        _uiState.update { it.copy(showDeletePaymentMethodDialog = false) }
+    }
+
+    fun confirmDeletePaymentMethod() {
+        savedCardRepository.clearCard()
+        _uiState.update {
+            it.copy(
+                savedPaymentCard = null,
+                isEditingPaymentMethod = false,
+                paymentForm = PaymentMethodFormState(),
+                showDeletePaymentMethodDialog = false,
+                successMessage = "Método de pago eliminado"
+            )
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.company.selvabooking.data.firebase
 
 import com.company.selvabooking.domain.model.Hotel
+import com.company.selvabooking.domain.model.Resena
 import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.Room
 import com.company.selvabooking.domain.model.User
@@ -138,6 +139,11 @@ class FirestoreService(
             .get()
             .await()
         roomsSnapshot.documents.forEach { it.reference.delete().await() }
+        val resenasSnapshot = firestore.collection(Constants.COLLECTION_RESENAS)
+            .whereEqualTo("hotelId", hotelId)
+            .get()
+            .await()
+        resenasSnapshot.documents.forEach { it.reference.delete().await() }
         firestore.collection(Constants.COLLECTION_HOTELES)
             .document(hotelId)
             .delete()
@@ -283,6 +289,63 @@ class FirestoreService(
             .await()
         val rooms = snapshot.documents.map { Room.fromMap(it.id, it.data ?: emptyMap()) }
         Result.success(rooms)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    fun getResenasByHotelFlow(hotelId: String): Flow<List<Resena>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_RESENAS)
+            .whereEqualTo("hotelId", hotelId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val resenas = snapshot?.documents?.map {
+                    Resena.fromMap(it.id, it.data ?: emptyMap())
+                }?.sortedByDescending { it.createdAt } ?: emptyList()
+                trySend(resenas)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun getResenasByHotel(hotelId: String): Result<List<Resena>> = try {
+        val snapshot = firestore.collection(Constants.COLLECTION_RESENAS)
+            .whereEqualTo("hotelId", hotelId)
+            .get()
+            .await()
+        val resenas = snapshot.documents.map {
+            Resena.fromMap(it.id, it.data ?: emptyMap())
+        }.sortedByDescending { it.createdAt }
+        Result.success(resenas)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun createResena(resena: Resena): Result<String> = try {
+        val ref = firestore.collection(Constants.COLLECTION_RESENAS).document()
+        ref.set(resena.copy(id = ref.id).toMap()).await()
+        Result.success(ref.id)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun updateResena(resena: Resena): Result<Unit> = try {
+        firestore.collection(Constants.COLLECTION_RESENAS)
+            .document(resena.id)
+            .set(resena.toMap())
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun deleteResena(resenaId: String): Result<Unit> = try {
+        firestore.collection(Constants.COLLECTION_RESENAS)
+            .document(resenaId)
+            .delete()
+            .await()
+        Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)
     }

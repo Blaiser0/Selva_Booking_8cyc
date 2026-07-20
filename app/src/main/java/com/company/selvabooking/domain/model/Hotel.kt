@@ -10,12 +10,16 @@ data class Hotel(
     val estrellas: Int = 0,
     val precioMinimo: Double = 0.0,
     val calificacion: Double = 0.0,
+    val calificacionBase: Double = 0.0,
     val imagenes: List<String> = emptyList(),
     val servicios: List<String> = emptyList(),
     val ubicacion: String = "",
     val destacado: Boolean = false,
     val oferta: Boolean = false
 ) {
+    fun effectiveBaseRating(): Double =
+        if (calificacionBase > 0.0) calificacionBase else calificacion
+
     fun toMap(): Map<String, Any> = mapOf(
         "nombre" to nombre,
         "ciudad" to ciudad,
@@ -25,6 +29,7 @@ data class Hotel(
         "estrellas" to estrellas,
         "precioMinimo" to precioMinimo,
         "calificacion" to calificacion,
+        "calificacionBase" to effectiveBaseRating(),
         "imagenes" to imagenes,
         "servicios" to servicios,
         "ubicacion" to ubicacion,
@@ -44,6 +49,9 @@ data class Hotel(
             estrellas = (map["estrellas"] as? Long)?.toInt() ?: 0,
             precioMinimo = (map["precioMinimo"] as? Number)?.toDouble() ?: 0.0,
             calificacion = (map["calificacion"] as? Number)?.toDouble() ?: 0.0,
+            calificacionBase = (map["calificacionBase"] as? Number)?.toDouble()
+                ?: (map["calificacion"] as? Number)?.toDouble()
+                ?: 0.0,
             imagenes = (map["imagenes"] as? List<String>) ?: emptyList(),
             servicios = (map["servicios"] as? List<String>) ?: emptyList(),
             ubicacion = map["ubicacion"] as? String ?: "",

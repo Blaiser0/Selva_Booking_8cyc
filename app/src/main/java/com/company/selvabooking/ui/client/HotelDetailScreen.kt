@@ -24,13 +24,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,10 +47,15 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.company.selvabooking.ui.components.AmenityChip
 import com.company.selvabooking.ui.components.BookingSectionTitle
+import com.company.selvabooking.ui.components.HotelReviewDialog
 import com.company.selvabooking.ui.components.LoadingIndicator
 import com.company.selvabooking.ui.components.RatingBadge
+import com.company.selvabooking.ui.components.ResenaCard
 import com.company.selvabooking.ui.components.RoomOfferCard
+import com.company.selvabooking.ui.components.SelvaButton
+import com.company.selvabooking.ui.components.SelvaOutlinedButton
 import com.company.selvabooking.ui.components.StickyPriceBar
+import com.company.selvabooking.ui.components.SuccessMessage
 import com.company.selvabooking.ui.theme.ForestGreen
 import com.company.selvabooking.ui.theme.LogoBackground
 import com.company.selvabooking.ui.theme.ToucanOrange
@@ -66,6 +74,46 @@ fun HotelDetailScreen(
     val listState = rememberLazyListState()
     val minRoomPrice = uiState.rooms.minOfOrNull { it.precio } ?: hotel?.precioMinimo ?: 0.0
     val firstRoomId = uiState.rooms.firstOrNull()?.id
+
+    LaunchedEffect(uiState.reviewMessage) {
+        if (uiState.reviewMessage != null) {
+            kotlinx.coroutines.delay(2500)
+            viewModel.clearReviewMessage()
+        }
+    }
+
+    if (uiState.showReviewDialog) {
+        HotelReviewDialog(
+            isEditing = uiState.userResena != null,
+            calificacion = uiState.reviewCalificacion,
+            comentario = uiState.reviewComentario,
+            calificacionError = uiState.reviewCalificacionError,
+            comentarioError = uiState.reviewComentarioError,
+            isSubmitting = uiState.isSubmittingReview,
+            onCalificacionChange = viewModel::updateReviewCalificacion,
+            onComentarioChange = viewModel::updateReviewComentario,
+            onDismiss = viewModel::dismissReviewDialog,
+            onSubmit = viewModel::submitReview
+        )
+    }
+
+    if (uiState.showDeleteReviewDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeleteReviewDialog,
+            title = { Text("Eliminar reseña") },
+            text = { Text("¿Deseas eliminar tu comentario y calificación de este hotel?") },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmDeleteReview) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeleteReviewDialog) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = LogoBackground,
@@ -293,6 +341,19 @@ fun HotelDetailScreen(
                 }
 
                 item {
+                    HotelReviewsSection(
+                        calificacion = hotel.calificacion,
+                        resenas = uiState.resenas,
+                        userResena = uiState.userResena,
+                        canReview = uiState.canReview,
+                        reviewMessage = uiState.reviewMessage,
+                        onWriteReview = viewModel::openReviewDialog,
+                        onEditReview = viewModel::openReviewDialog,
+                        onDeleteReview = viewModel::requestDeleteReview
+                    )
+                }
+
+                item {
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -325,6 +386,101 @@ fun HotelDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HotelReviewsSection(
+    calificacion: Double,
+    resenas: List<com.company.selvabooking.domain.model.Resena>,
+    userResena: com.company.selvabooking.domain.model.Resena?,
+    canReview: Boolean,
+    reviewMessage: String?,
+    onWriteReview: () -> Unit,
+    onEditReview: () -> Unit,
+    onDeleteReview: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        BookingSectionTitle(title = "Comentarios y calificación")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = String.format("%.1f", calificacion),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = if (resenas.isEmpty()) {
+                        "Sin reseñas aún"
+                    } else {
+                        "${resenas.size} reseña${if (resenas.size == 1) "" else "s"}"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            RatingBadge(score = calificacion)
+        }
+
+        if (reviewMessage != null) {
+            SuccessMessage(reviewMessage)
+        }
+
+        when {
+            userResena != null -> {
+                ResenaCard(resena = userResena, isOwnReview = true)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SelvaOutlinedButton(
+                        text = "Modificar reseña",
+                        onClick = onEditReview,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SelvaOutlinedButton(
+                        text = "Eliminar",
+                        onClick = onDeleteReview,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            canReview -> {
+                SelvaButton(
+                    text = "Escribir reseña",
+                    onClick = onWriteReview
+                )
+            }
+
+            else -> {
+                Text(
+                    text = "Solo pueden comentar quienes han reservado al menos una vez en este hotel.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        val otherResenas = if (userResena != null) {
+            resenas.filter { it.id != userResena.id }
+        } else {
+            resenas
+        }
+
+        otherResenas.forEach { resena ->
+            ResenaCard(resena = resena)
         }
     }
 }

@@ -34,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -42,17 +41,17 @@ import com.company.selvabooking.domain.model.SavedPaymentCard
 import com.company.selvabooking.ui.components.ErrorMessage
 import com.company.selvabooking.ui.components.LoadingIndicator
 import com.company.selvabooking.ui.components.PaymentCardCvcField
-import com.company.selvabooking.ui.components.PaymentCardExpiryField
-import com.company.selvabooking.ui.components.PaymentCardNumberField
+import com.company.selvabooking.ui.components.PaymentMethodForm
+import com.company.selvabooking.ui.components.SavedPaymentCardSummary
 import com.company.selvabooking.ui.components.SelvaButton
 import com.company.selvabooking.ui.components.SelvaOutlinedButton
 import com.company.selvabooking.ui.components.SelvaScaffold
-import com.company.selvabooking.ui.components.SelvaTextField
 import com.company.selvabooking.ui.components.SelvaTopAppBar
 import com.company.selvabooking.ui.theme.ForestGreen
 import com.company.selvabooking.utils.DateUtils
 import com.company.selvabooking.viewmodel.PaymentUiState
 import com.company.selvabooking.viewmodel.PaymentViewModel
+import com.company.selvabooking.viewmodel.toPaymentMethodFormState
 
 @Composable
 fun PaymentScreen(
@@ -379,16 +378,18 @@ private fun PaymentGatewayForm(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Información de la tarjeta",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
 
         if (uiState.useSavedCard) {
-            SavedCardSummary(uiState)
-            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Información de la tarjeta",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            uiState.savedCard?.let { card ->
+                SavedPaymentCardSummary(card = card)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             PaymentCardCvcField(
                 value = uiState.cardCvc,
                 onValueChange = viewModel::updateCardCvc,
@@ -397,168 +398,20 @@ private fun PaymentGatewayForm(
                 resetKey = uiState.useSavedCard
             )
         } else {
-            PaymentCardNumberField(
-                value = uiState.cardNumber,
-                onValueChange = viewModel::updateCardNumber,
-                label = "1234 1234 1234 1234",
-                error = uiState.cardNumberError,
+            PaymentMethodForm(
+                state = uiState.toPaymentMethodFormState(),
+                onCardNumberChange = viewModel::updateCardNumber,
+                onCardExpiryChange = viewModel::updateCardExpiry,
+                onCardCvcChange = viewModel::updateCardCvc,
+                onCardholderNameChange = viewModel::updateCardholderName,
+                onAddressLine1Change = viewModel::updateAddressLine1,
+                onAddressLine2Change = viewModel::updateAddressLine2,
+                onDistrictChange = viewModel::updateDistrict,
+                onPostalCodeChange = viewModel::updatePostalCode,
+                showCvc = true,
                 resetKey = uiState.useSavedCard
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                PaymentCardExpiryField(
-                    value = uiState.cardExpiry,
-                    onValueChange = viewModel::updateCardExpiry,
-                    label = "MM/AA",
-                    error = uiState.cardExpiryError,
-                    modifier = Modifier.weight(1f),
-                    resetKey = uiState.useSavedCard
-                )
-                PaymentCardCvcField(
-                    value = uiState.cardCvc,
-                    onValueChange = viewModel::updateCardCvc,
-                    label = "CVC",
-                    error = uiState.cardCvcError,
-                    modifier = Modifier.weight(1f),
-                    resetKey = uiState.useSavedCard
-                )
-            }
-            Text(
-                text = "VISA · Mastercard · AMEX · Discover",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            SelvaTextField(
-                value = uiState.cardholderName,
-                onValueChange = viewModel::updateCardholderName,
-                label = "Nombre del titular de tarjeta",
-                error = uiState.cardholderNameError
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            BillingAddressSection(uiState, viewModel)
         }
-    }
-}
-
-@Composable
-private fun SavedCardSummary(uiState: PaymentUiState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Text(
-            text = uiState.cardNumber,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = uiState.cardholderName,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = "Vence ${uiState.cardExpiry}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-        Text(
-            text = uiState.addressLine1,
-            style = MaterialTheme.typography.bodySmall
-        )
-        if (uiState.addressLine2.isNotBlank()) {
-            Text(
-                text = uiState.addressLine2,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-        Text(
-            text = "${uiState.district}, ${uiState.region}, ${uiState.country}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun BillingAddressSection(
-    uiState: PaymentUiState,
-    viewModel: PaymentViewModel
-) {
-    Text(
-        text = "Dirección de facturación",
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Medium
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    BillingStaticField(label = "País", value = uiState.country)
-    Spacer(modifier = Modifier.height(8.dp))
-    SelvaTextField(
-        value = uiState.addressLine1,
-        onValueChange = viewModel::updateAddressLine1,
-        label = "Línea 1 de dirección",
-        error = uiState.addressLine1Error
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    SelvaTextField(
-        value = uiState.addressLine2,
-        onValueChange = viewModel::updateAddressLine2,
-        label = "Línea 2 de dirección"
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        SelvaTextField(
-            value = uiState.district,
-            onValueChange = viewModel::updateDistrict,
-            label = "Distrito",
-            error = uiState.districtError,
-            modifier = Modifier.weight(1f)
-        )
-        SelvaTextField(
-            value = uiState.postalCode,
-            onValueChange = viewModel::updatePostalCode,
-            label = "Código postal",
-            keyboardType = KeyboardType.Number,
-            modifier = Modifier.weight(1f)
-        )
-    }
-    Spacer(modifier = Modifier.height(8.dp))
-    BillingStaticField(label = "Departamento / Región", value = uiState.region)
-}
-
-@Composable
-private fun BillingStaticField(label: String, value: String) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 14.dp)
-        )
     }
 }
 

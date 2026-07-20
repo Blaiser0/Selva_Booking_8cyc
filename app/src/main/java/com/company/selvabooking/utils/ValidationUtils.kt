@@ -26,15 +26,13 @@ object ValidationUtils {
 
     fun isValidCardNumber(number: String): Boolean {
         val digits = number.filter { it.isDigit() }
-        return digits.length in 15..19
+        return digits.length == 16
     }
 
     fun isValidCardExpiry(expiry: String): Boolean {
         if (!Regex("""^\d{2}/\d{2}$""").matches(expiry.trim())) return false
-        val parts = expiry.split("/")
-        val month = parts[0].toIntOrNull() ?: return false
-        val year = parts[1].toIntOrNull() ?: return false
-        return month in 1..12 && year in 0..99
+        val parsed = CardExpiryUtils.parse(expiry) ?: return false
+        return CardExpiryUtils.isSelectionValid(parsed.first, parsed.second)
     }
 
     fun isValidCvc(cvc: String): Boolean {

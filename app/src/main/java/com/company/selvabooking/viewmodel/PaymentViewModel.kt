@@ -8,7 +8,9 @@ import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.SavedPaymentCard
 import com.company.selvabooking.repository.ReservationRepository
 import com.company.selvabooking.repository.SavedCardRepository
+import com.company.selvabooking.utils.MadreDeDiosDistricts
 import com.company.selvabooking.utils.PaymentInputFormatters
+import com.company.selvabooking.utils.PaymentMethodFormValidator
 import com.company.selvabooking.utils.ValidationUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,7 +43,8 @@ data class PaymentUiState(
     val cardCvcError: String? = null,
     val cardholderNameError: String? = null,
     val addressLine1Error: String? = null,
-    val districtError: String? = null
+    val districtError: String? = null,
+    val postalCodeError: String? = null
 )
 
 class PaymentViewModel(
@@ -95,6 +98,15 @@ class PaymentViewModel(
     }
 
     private fun applySavedCard(card: SavedPaymentCard) {
+        val district = if (MadreDeDiosDistricts.isValidDistrict(card.district)) {
+            card.district
+        } else {
+            ""
+        }
+        val postalCode = MadreDeDiosDistricts.resolvePostalCodeOnDistrictChange(
+            district = district,
+            currentPostalCode = card.postalCode
+        )
         _uiState.update {
             it.copy(
                 cardNumber = card.maskedNumber,
@@ -103,8 +115,8 @@ class PaymentViewModel(
                 country = card.country,
                 addressLine1 = card.addressLine1,
                 addressLine2 = card.addressLine2,
-                district = card.district,
-                postalCode = card.postalCode,
+                district = district,
+                postalCode = postalCode,
                 region = card.region,
                 cardCvc = "",
                 useSavedCard = true,
@@ -113,7 +125,8 @@ class PaymentViewModel(
                 cardCvcError = null,
                 cardholderNameError = null,
                 addressLine1Error = null,
-                districtError = null
+                districtError = null,
+                postalCodeError = null
             )
         }
     }
@@ -140,7 +153,8 @@ class PaymentViewModel(
                 cardCvcError = null,
                 cardholderNameError = null,
                 addressLine1Error = null,
-                districtError = null
+                districtError = null,
+                postalCodeError = null
             )
         }
     }
@@ -178,17 +192,31 @@ class PaymentViewModel(
 
     fun updateDistrict(value: String) {
         if (_uiState.value.useSavedCard) return
-        _uiState.update { it.copy(district = value, districtError = null) }
+        _uiState.update { state ->
+            state.copy(
+                district = value,
+                districtError = null,
+                postalCode = MadreDeDiosDistricts.resolvePostalCodeOnDistrictChange(
+                    district = value,
+                    currentPostalCode = state.postalCode
+                ),
+                postalCodeError = null
+            )
+        }
     }
 
     fun updatePostalCode(value: String) {
         if (_uiState.value.useSavedCard) return
-        _uiState.update { it.copy(postalCode = value) }
+        _uiState.update { it.copy(postalCode = value, postalCodeError = null) }
     }
 
     fun confirmPayment() {
-        val state = _uiState.value
-        val validationErrors = validatePaymentForm(state)
+        val normalizedState = normalizeBillingState(_uiState.value)
+        if (normalizedState != _uiState.value) {
+            _uiState.value = normalizedState
+        }
+
+        val validationErrors = validatePaymentForm(normalizedState)
         if (validationErrors != null) {
             _uiState.value = validationErrors
             return
@@ -203,8 +231,8 @@ class PaymentViewModel(
                         it.copy(
                             isProcessing = false,
                             isSuccess = true,
-                            showSaveCardPrompt = !state.useSavedCard,
-                            paymentFlowComplete = state.useSavedCard
+                            showSaveCardPrompt = !normalizedState.useSavedCard,
+                            paymentFlowComplete = normalizedState.useSavedCard
                         )
                     }
                 },
@@ -252,52 +280,57 @@ class PaymentViewModel(
         }
     }
 
-    private fun validatePaymentForm(state: PaymentUiState): PaymentUiState? {
-        val cardCvcError = if (!ValidationUtils.isValidCvc(state.cardCvc)) {
-            "CVC inválido"
-        } else null
+    private fun normalizeBillingState(state: PaymentUiState): PaymentUiState {
+        if (state.useSavedCard || state.district.isBlank()) return state
+        val normalized = PaymentMethodFormValidator.normalizeBillingState(state.toPaymentMethodFormState())
+        return state.copy(postalCode = normalized.postalCode)
+    }
 
+    private fun validatePaymentForm(state: PaymentUiState): PaymentUiState? {
         if (state.useSavedCard) {
+            val cardCvcError = if (!ValidationUtils.isValidCvc(state.cardCvc)) {
+                "CVC inválido"
+            } else null
             if (cardCvcError != null) {
                 return state.copy(cardCvcError = cardCvcError)
             }
             return null
         }
 
-        val cardNumberError = if (!ValidationUtils.isValidCardNumber(state.cardNumber)) {
-            "Número de tarjeta inválido"
-        } else null
-        val cardExpiryError = if (!ValidationUtils.isValidCardExpiry(state.cardExpiry)) {
-            "Fecha MM/AA inválida"
-        } else null
-        val cardholderNameError = if (!ValidationUtils.isValidName(state.cardholderName)) {
-            "Nombre del titular requerido"
-        } else null
-        val addressLine1Error = if (state.addressLine1.isBlank()) {
-            "Ingrese la dirección de facturación"
-        } else null
-        val districtError = if (state.district.isBlank()) {
-            "Ingrese el distrito"
-        } else null
+        val validationErrors = PaymentMethodFormValidator.validate(
+            state = state.toPaymentMethodFormState(),
+            requireCvc = true,
+            requireCardNumber = true
+        ) ?: return null
 
-        if (listOf(
-                cardNumberError,
-                cardExpiryError,
-                cardCvcError,
-                cardholderNameError,
-                addressLine1Error,
-                districtError
-            ).any { it != null }
-        ) {
-            return state.copy(
-                cardNumberError = cardNumberError,
-                cardExpiryError = cardExpiryError,
-                cardCvcError = cardCvcError,
-                cardholderNameError = cardholderNameError,
-                addressLine1Error = addressLine1Error,
-                districtError = districtError
-            )
-        }
-        return null
+        return state.copy(
+            cardNumberError = validationErrors.cardNumberError,
+            cardExpiryError = validationErrors.cardExpiryError,
+            cardCvcError = validationErrors.cardCvcError,
+            cardholderNameError = validationErrors.cardholderNameError,
+            addressLine1Error = validationErrors.addressLine1Error,
+            districtError = validationErrors.districtError,
+            postalCodeError = validationErrors.postalCodeError
+        )
     }
 }
+
+fun PaymentUiState.toPaymentMethodFormState() = com.company.selvabooking.domain.model.PaymentMethodFormState(
+    cardNumber = cardNumber,
+    cardExpiry = cardExpiry,
+    cardCvc = cardCvc,
+    cardholderName = cardholderName,
+    country = country,
+    addressLine1 = addressLine1,
+    addressLine2 = addressLine2,
+    district = district,
+    postalCode = postalCode,
+    region = region,
+    cardNumberError = cardNumberError,
+    cardExpiryError = cardExpiryError,
+    cardCvcError = cardCvcError,
+    cardholderNameError = cardholderNameError,
+    addressLine1Error = addressLine1Error,
+    districtError = districtError,
+    postalCodeError = postalCodeError
+)

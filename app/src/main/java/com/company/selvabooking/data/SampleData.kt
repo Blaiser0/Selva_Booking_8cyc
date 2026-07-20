@@ -16,6 +16,7 @@ object SampleData {
             estrellas = 5,
             precioMinimo = 280.0,
             calificacion = 4.8,
+            calificacionBase = 4.8,
             imagenes = listOf(
                 "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800",
                 "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"
@@ -38,6 +39,7 @@ object SampleData {
             estrellas = 5,
             precioMinimo = 450.0,
             calificacion = 4.9,
+            calificacionBase = 4.9,
             imagenes = listOf(
                 "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800",
                 "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800"
@@ -60,6 +62,7 @@ object SampleData {
             estrellas = 3,
             precioMinimo = 120.0,
             calificacion = 4.2,
+            calificacionBase = 4.2,
             imagenes = listOf(
                 "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800"
             ),
@@ -78,6 +81,7 @@ object SampleData {
             estrellas = 4,
             precioMinimo = 200.0,
             calificacion = 4.5,
+            calificacionBase = 4.5,
             imagenes = listOf(
                 "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800"
             ),

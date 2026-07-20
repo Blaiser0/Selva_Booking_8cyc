@@ -8,6 +8,7 @@ import com.company.selvabooking.SelvaBookingApplication
 import com.company.selvabooking.domain.model.Hotel
 import com.company.selvabooking.domain.model.Room
 import com.company.selvabooking.repository.HotelRepository
+import com.company.selvabooking.repository.ResenaRepository
 import com.company.selvabooking.repository.RoomRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,8 @@ class AdminHotelsViewModel(application: Application) : AndroidViewModel(applicat
         (application as SelvaBookingApplication).hotelRepository
     private val roomRepository: RoomRepository =
         (application as SelvaBookingApplication).roomRepository
+    private val resenaRepository: ResenaRepository =
+        (application as SelvaBookingApplication).resenaRepository
 
     private val _uiState = MutableStateFlow(AdminHotelsUiState())
     val uiState: StateFlow<AdminHotelsUiState> = _uiState.asStateFlow()
@@ -66,7 +69,7 @@ class AdminHotelsViewModel(application: Application) : AndroidViewModel(applicat
                 categoria = hotel.categoria,
                 estrellas = hotel.estrellas,
                 precioMinimo = hotel.precioMinimo.toString(),
-                calificacion = hotel.calificacion.toString(),
+                calificacion = hotel.effectiveBaseRating().toString(),
                 servicios = hotel.servicios.joinToString(", "),
                 ubicacion = hotel.ubicacion,
                 destacado = hotel.destacado,
@@ -126,6 +129,7 @@ class AdminHotelsViewModel(application: Application) : AndroidViewModel(applicat
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
+            val adminRating = state.calificacion.toDoubleOrNull() ?: 4.0
             val hotel = Hotel(
                 id = state.editingHotelId ?: "",
                 nombre = state.nombre,
@@ -135,7 +139,8 @@ class AdminHotelsViewModel(application: Application) : AndroidViewModel(applicat
                 categoria = state.categoria,
                 estrellas = state.estrellas,
                 precioMinimo = state.precioMinimo.toDoubleOrNull() ?: 0.0,
-                calificacion = state.calificacion.toDoubleOrNull() ?: 4.0,
+                calificacion = adminRating,
+                calificacionBase = adminRating,
                 servicios = state.servicios.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                 ubicacion = state.ubicacion,
                 destacado = state.destacado,
@@ -143,12 +148,13 @@ class AdminHotelsViewModel(application: Application) : AndroidViewModel(applicat
                 imagenes = state.imagenes
             )
             val result = if (state.editingHotelId != null) {
-                hotelRepository.updateHotel(hotel)
+                hotelRepository.updateHotel(hotel).map { hotel.id }
             } else {
-                hotelRepository.createHotel(hotel).map { }
+                hotelRepository.createHotel(hotel)
             }
             result.fold(
-                onSuccess = {
+                onSuccess = { savedHotelId ->
+                    resenaRepository.refreshHotelRating(savedHotelId)
                     _uiState.update {
                         it.copy(isSaving = false, message = "Hotel guardado", editingHotelId = null)
                     }
