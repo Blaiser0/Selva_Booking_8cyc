@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="390" height="844" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet">
+  <title>Detalle Hotel</title>
+  <defs>
+    <linearGradient id="gradDrawer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E5E3E"/>
+      <stop offset="100%" stop-color="#1E3D2A"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="clipFrame"><rect width="390" height="844"/></clipPath>
+    <filter id="shadow-sm" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-md" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g id="screen">
+<rect x="0" y="0" width="390" height="844" rx="0" fill="#FAF9F6"/>
+<g id="hero">
+  <g id="img-ph">
+  <rect x="0" y="0" width="390" height="280" rx="0" fill="#E8EDE9" stroke="#2E5E3E" stroke-width="1"/>
+  <line x1="8" y1="8" x2="382" y2="272" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <line x1="382" y1="8" x2="8" y2="272" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <text x="195.0" y="136.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="400" fill="#2C4A4A" text-anchor="middle" opacity="0.55">Hotel</text>
+</g>
+  <rect x="0" y="0" width="390" height="280" fill="url(#gradHero)"/>
+  <rect x="12" y="16" width="40" height="40" rx="20" fill="#FAF9F6"/>
+  <path d="M34 36 H22 M26 30 L22 36 L26 42" stroke="#2E5E3E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <rect x="322" y="20" width="52" height="32" rx="8" fill="#2E5E3E"/>
+  <text x="348.0" y="29.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="700" fill="#FAF9F6" text-anchor="middle">4.8</text>
+  <text x="16.0" y="236.4" font-family="Georgia, 'Times New Roman', serif" font-size="22" font-weight="700" fill="#FAF9F6">Eco Lodge Selva Verde</text>
+  <text x="16.0" y="261.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#FAF9F6">Puerto Maldonado</text>
+</g>
+<g id="meta">
+  <text x="16.0" y="302.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="400" fill="#E8954A">★★★★★</text>
+  <text x="106.0" y="301.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#2C4A4A">Ecologico</text>
+  <rect x="216" y="288" width="110" height="28" rx="8" fill="#E8954A"/>
+  <rect x="216" y="288" width="110" height="28" rx="8" fill="#E8954A" fill-opacity="0.15"/>
+  <text x="271.0" y="296.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#E8954A" text-anchor="middle">Oferta especial</text>
+  <text x="16.0" y="333.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#2C4A4A">Lodge ecologico en plena selva con cabanas de madera.</text>
+</g>
+<text x="16.0" y="371.6" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" fill="#2E5E3E">Servicios del hotel</text>
+<g id="chip-WiFi">
+  <rect x="16" y="388" width="76" height="36" rx="20" fill="#2E5E3E"/>
+  <rect x="16" y="388" width="76" height="36" rx="20" fill="#2E5E3E" fill-opacity="0.1"/>
+  <text x="54.0" y="396.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="500" fill="#2E5E3E" text-anchor="middle">WiFi</text>
+</g>
+<g id="chip-Piscina">
+  <rect x="100" y="388" width="76" height="36" rx="20" fill="#2E5E3E"/>
+  <rect x="100" y="388" width="76" height="36" rx="20" fill="#2E5E3E" fill-opacity="0.1"/>
+  <text x="138.0" y="396.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="500" fill="#2E5E3E" text-anchor="middle">Piscina</text>
+</g>
+<g id="chip-Spa">
+  <rect x="184" y="388" width="76" height="36" rx="20" fill="#2E5E3E"/>
+  <rect x="184" y="388" width="76" height="36" rx="20" fill="#2E5E3E" fill-opacity="0.1"/>
+  <text x="222.0" y="396.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="500" fill="#2E5E3E" text-anchor="middle">Spa</text>
+</g>
+<g id="chip-Tours">
+  <rect x="268" y="388" width="76" height="36" rx="20" fill="#2E5E3E"/>
+  <rect x="268" y="388" width="76" height="36" rx="20" fill="#2E5E3E" fill-opacity="0.1"/>
+  <text x="306.0" y="396.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="500" fill="#2E5E3E" text-anchor="middle">Tours</text>
+</g>
+<g id="room" filter="url(#shadow-sm)">
+  <rect x="16" y="440" width="358" height="220" rx="16" fill="#FAF9F6"/>
+  <g id="img-ph">
+  <rect x="28" y="452" width="334" height="120" rx="12" fill="#E8EDE9" stroke="#2E5E3E" stroke-width="1"/>
+  <line x1="36" y1="460" x2="354" y2="564" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <line x1="354" y1="460" x2="36" y2="564" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <text x="195.0" y="508.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="400" fill="#2C4A4A" text-anchor="middle" opacity="0.55">Habitacion</text>
+</g>
+  <text x="32.0" y="590.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Cabana Deluxe</text>
+  <text x="32.0" y="610.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Capacidad: 2 personas</text>
+  <text x="32.0" y="632.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="700" fill="#2E5E3E">S/ 280 / noche</text>
+  <g id="btn-Reservar">
+  <rect x="244" y="616" width="120" height="48" rx="12" fill="#2E5E3E"/>
+  <text x="304.0" y="635.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#FAF9F6" text-anchor="middle">Reservar</text>
+</g>
+</g>
+<g id="sticky-bar">
+  <rect x="0" y="772" width="390" height="72" rx="0" fill="#FAF9F6"/>
+  <line x1="0" y1="772" x2="390" y2="772" stroke="#F3F1EA" stroke-width="1"/>
+  <text x="16.0" y="796.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Desde</text>
+  <text x="16.0" y="823.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="20" font-weight="700" fill="#2E5E3E">S/ 280</text>
+  <g id="btn-Ver ofertas">
+  <rect x="214" y="786" width="160" height="48" rx="12" fill="#2E5E3E"/>
+  <text x="294.0" y="805.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#FAF9F6" text-anchor="middle">Ver ofertas</text>
+</g>
+</g>
+  </g>
+</svg>

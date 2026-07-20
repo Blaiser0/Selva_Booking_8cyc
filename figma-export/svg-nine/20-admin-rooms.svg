@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="390" height="844" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet">
+  <title>Habitaciones</title>
+  <defs>
+    <linearGradient id="gradDrawer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E5E3E"/>
+      <stop offset="100%" stop-color="#1E3D2A"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="clipFrame"><rect width="390" height="844"/></clipPath>
+    <filter id="shadow-sm" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-md" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g id="screen">
+<rect x="0" y="0" width="390" height="844" rx="0" fill="#FAF9F6"/>
+<g id="top-bar">
+  <rect x="0" y="0" width="390" height="64" rx="0" fill="#FAF9F6"/>
+  <g transform="translate(16,24)">
+    <path d="M18 4 H6 M10 0 L6 4 L10 8" stroke="#2E5E3E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  <text x="56.0" y="24.8" font-family="Georgia, 'Times New Roman', serif" font-size="18" font-weight="700" fill="#2E5E3E">Habitaciones</text>
+  <text x="56.0" y="44.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Eco Lodge Selva Verde</text>
+</g>
+<g id="admin-room" filter="url(#shadow-sm)">
+  <rect x="16" y="80" width="358" height="96" rx="14" fill="#F3F1EA"/>
+  <g id="img-ph">
+  <rect x="28" y="92" width="72" height="72" rx="10" fill="#E8EDE9" stroke="#2E5E3E" stroke-width="1"/>
+  <line x1="36" y1="100" x2="92" y2="156" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <line x1="92" y1="100" x2="36" y2="156" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  
+</g>
+  <text x="112.0" y="103.7" font-family="Inter, Roboto, Arial, sans-serif" font-size="15" font-weight="600" fill="#1A2E1A">Cabana Deluxe</text>
+  <text x="112.0" y="124.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="700" fill="#2E5E3E">S/ 280/noche</text>
+  <text x="112.0" y="146.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Capacidad: 2 - Disponible</text>
+</g>
+<g id="admin-room" filter="url(#shadow-sm)">
+  <rect x="16" y="184" width="358" height="96" rx="14" fill="#F3F1EA"/>
+  <g id="img-ph">
+  <rect x="28" y="196" width="72" height="72" rx="10" fill="#E8EDE9" stroke="#2E5E3E" stroke-width="1"/>
+  <line x1="36" y1="204" x2="92" y2="260" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <line x1="92" y1="204" x2="36" y2="260" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  
+</g>
+  <text x="112.0" y="207.7" font-family="Inter, Roboto, Arial, sans-serif" font-size="15" font-weight="600" fill="#1A2E1A">Suite Selva</text>
+  <text x="112.0" y="228.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="700" fill="#2E5E3E">S/ 350/noche</text>
+  <text x="112.0" y="250.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Capacidad: 4 - Disponible</text>
+</g>
+<g id="admin-room" filter="url(#shadow-sm)">
+  <rect x="16" y="292" width="358" height="96" rx="14" fill="#F3F1EA"/>
+  <g id="img-ph">
+  <rect x="28" y="304" width="72" height="72" rx="10" fill="#E8EDE9" stroke="#2E5E3E" stroke-width="1"/>
+  <line x1="36" y1="312" x2="92" y2="368" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  <line x1="92" y1="312" x2="36" y2="368" stroke="#2E5E3E" stroke-width="1" stroke-opacity="0.25"/>
+  
+</g>
+  <text x="112.0" y="315.7" font-family="Inter, Roboto, Arial, sans-serif" font-size="15" font-weight="600" fill="#1A2E1A">Bungalow Familiar</text>
+  <text x="112.0" y="336.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="700" fill="#2E5E3E">S/ 420/noche</text>
+  <text x="112.0" y="358.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Capacidad: 6 - Ocupada</text>
+</g>
+<g id="fab">
+  <rect x="322" y="776" width="52" height="52" rx="26" fill="#E8954A"/>
+  <text x="348.0" y="802.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="28" font-weight="600" fill="#FAF9F6" text-anchor="middle">+</text>
+</g>
+  </g>
+</svg>

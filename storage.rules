@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/usuarios/$(request.auth.uid)).data.rol == 'Administrador';
+    }
+
+    function isImageUpload() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Fotos de perfil: perfiles/{userId}.jpg
+    match /perfiles/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn()
+        && fileName == request.auth.uid + '.jpg'
+        && isImageUpload();
+      allow delete: if isSignedIn() && fileName == request.auth.uid + '.jpg';
+    }
+
+    // Imágenes de hoteles (solo administradores)
+    match /hoteles/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isImageUpload();
+      allow delete: if isAdmin();
+    }
+
+    // Imágenes de habitaciones (solo administradores)
+    match /habitaciones/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isImageUpload();
+      allow delete: if isAdmin();
+    }
+  }
+}

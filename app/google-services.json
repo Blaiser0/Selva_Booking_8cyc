@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "653279120946",
+    "project_id": "asassas-95da4",
+    "storage_bucket": "asassas-95da4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653279120946:android:5352c52d973c41f54e362b",
+        "android_client_info": {
+          "package_name": "com.company.selvabooking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR1A8q7DiChCbzy02Hy5xwdnscA8chex8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

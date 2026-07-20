@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="390" height="844" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet">
+  <title>Solicitudes Admin</title>
+  <defs>
+    <linearGradient id="gradDrawer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E5E3E"/>
+      <stop offset="100%" stop-color="#1E3D2A"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="clipFrame"><rect width="390" height="844"/></clipPath>
+    <filter id="shadow-sm" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-md" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g id="screen">
+<rect x="0" y="0" width="390" height="844" rx="0" fill="#FAF9F6"/>
+<g id="top-bar">
+  <rect x="0" y="0" width="390" height="64" rx="0" fill="#FAF9F6"/>
+  <g transform="translate(16,20)">
+  <rect x="0" y="0" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="7" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="14" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+</g>
+  <text x="56.0" y="29.6" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" fill="#2E5E3E">Solicitudes de admin</text>
+</g>
+<text x="16.0" y="76.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="400" fill="#2C4A4A">2 solicitudes pendientes</text>
+<g id="admin-request" filter="url(#shadow-sm)">
+  <rect x="16" y="100" width="358" height="148" rx="16" fill="#F3F1EA"/>
+  <text x="32.0" y="122.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Maria Lopez</text>
+  <text x="32.0" y="144.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">maria@email.com</text>
+  <text x="32.0" y="168.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#E8954A">Solicita acceso como administrador</text>
+  <g id="btn-outline-Rechazar">
+  <rect x="32" y="192" width="140" height="44" rx="12" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1.2"/>
+  <text x="102.0" y="209.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#2E5E3E" text-anchor="middle">Rechazar</text>
+</g>
+  <g id="btn-Aceptar">
+  <rect x="184" y="192" width="140" height="48" rx="12" fill="#2E5E3E"/>
+  <text x="254.0" y="211.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#FAF9F6" text-anchor="middle">Aceptar</text>
+</g>
+</g>
+<g id="admin-request" filter="url(#shadow-sm)">
+  <rect x="16" y="264" width="358" height="148" rx="16" fill="#F3F1EA"/>
+  <text x="32.0" y="286.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Carlos Ruiz</text>
+  <text x="32.0" y="308.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">carlos@email.com</text>
+  <text x="32.0" y="332.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#E8954A">Solicita acceso como administrador</text>
+  <g id="btn-outline-Rechazar">
+  <rect x="32" y="356" width="140" height="44" rx="12" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1.2"/>
+  <text x="102.0" y="373.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#2E5E3E" text-anchor="middle">Rechazar</text>
+</g>
+  <g id="btn-Aceptar">
+  <rect x="184" y="356" width="140" height="48" rx="12" fill="#2E5E3E"/>
+  <text x="254.0" y="375.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#FAF9F6" text-anchor="middle">Aceptar</text>
+</g>
+</g>
+  </g>
+</svg>

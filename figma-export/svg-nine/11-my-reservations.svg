@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="390" height="844" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet">
+  <title>Mis Reservas</title>
+  <defs>
+    <linearGradient id="gradDrawer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E5E3E"/>
+      <stop offset="100%" stop-color="#1E3D2A"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="clipFrame"><rect width="390" height="844"/></clipPath>
+    <filter id="shadow-sm" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-md" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g id="screen">
+<rect x="0" y="0" width="390" height="844" rx="0" fill="#FAF9F6"/>
+<g id="top-bar">
+  <rect x="0" y="0" width="390" height="64" rx="0" fill="#FAF9F6"/>
+  <g transform="translate(16,20)">
+  <rect x="0" y="0" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="7" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="14" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+</g>
+  <text x="56.0" y="29.6" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" fill="#2E5E3E">Mis Reservas</text>
+</g>
+<g id="chip-Todas">
+  <rect x="16" y="72" width="73" height="32" rx="16" fill="#2E5E3E"/>
+  <text x="52.5" y="84.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#FAF9F6" text-anchor="middle">Todas</text>
+</g>
+<g id="chip-Pendiente">
+  <rect x="96" y="72" width="109" height="32" rx="16" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1"/>
+  <text x="150.5" y="84.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#2E5E3E" text-anchor="middle">Pendiente</text>
+</g>
+<g id="chip-Confirmada">
+  <rect x="196" y="72" width="118" height="32" rx="16" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1"/>
+  <text x="255.0" y="84.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#2E5E3E" text-anchor="middle">Confirmada</text>
+</g>
+<g id="reserva-1" filter="url(#shadow-sm)">
+  <rect x="16" y="116" width="358" height="196" rx="16" fill="#F3F1EA"/>
+  <text x="32.0" y="138.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Eco Lodge Selva Verde</text>
+  <g id="status-Pendiente">
+  <rect x="278" y="130" width="103" height="26" rx="8" fill="#FDF0E4"/>
+  <text x="289.0" y="139.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="600" fill="#E8954A">Pendiente</text>
+</g>
+  <text x="32.0" y="167.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#2C4A4A">Habitacion: Cabana Deluxe</text>
+  <text x="32.0" y="190.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">20/07/2026 - 23/07/2026</text>
+  <text x="32.0" y="215.7" font-family="Inter, Roboto, Arial, sans-serif" font-size="15" font-weight="700" fill="#2E5E3E">S/ 840</text>
+  <g id="btn-outline-Cancelar reserva">
+  <rect x="32" y="240" width="326" height="44" rx="12" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1.2"/>
+  <text x="195.0" y="257.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="600" fill="#2E5E3E" text-anchor="middle">Cancelar reserva</text>
+</g>
+</g>
+<g id="reserva-2" filter="url(#shadow-sm)">
+  <rect x="16" y="328" width="358" height="160" rx="16" fill="#F3F1EA"/>
+  <text x="32.0" y="350.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Tambopata Jungle Lodge</text>
+  <g id="status-Confirmada">
+  <rect x="270" y="342" width="112" height="26" rx="8" fill="#E8F0EA"/>
+  <text x="281.0" y="351.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="600" fill="#2E5E3E">Confirmada</text>
+</g>
+  <text x="32.0" y="379.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#2C4A4A">Habitacion: Suite Selva</text>
+  <text x="32.0" y="402.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">01/08/2026 - 04/08/2026</text>
+  <text x="32.0" y="427.7" font-family="Inter, Roboto, Arial, sans-serif" font-size="15" font-weight="700" fill="#2E5E3E">S/ 600</text>
+</g>
+  </g>
+</svg>

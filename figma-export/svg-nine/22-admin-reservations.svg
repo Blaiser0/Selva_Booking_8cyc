@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="390" height="844" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet">
+  <title>Gestion de Reservas</title>
+  <defs>
+    <linearGradient id="gradDrawer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E5E3E"/>
+      <stop offset="100%" stop-color="#1E3D2A"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="clipFrame"><rect width="390" height="844"/></clipPath>
+    <filter id="shadow-sm" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-md" x="-8%" y="-8%" width="116%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g id="screen">
+<rect x="0" y="0" width="390" height="844" rx="0" fill="#FAF9F6"/>
+<g id="top-bar">
+  <rect x="0" y="0" width="390" height="64" rx="0" fill="#FAF9F6"/>
+  <g transform="translate(16,20)">
+  <rect x="0" y="0" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="7" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+  <rect x="0" y="14" width="18" height="2.5" rx="1.2" fill="#2E5E3E"/>
+</g>
+  <text x="56.0" y="29.6" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" fill="#2E5E3E">Gestion de Reservas</text>
+</g>
+<g id="search">
+  <rect x="16" y="72" width="358" height="44" rx="12" fill="#FAF9F6" stroke="#8B5E3C" stroke-width="1.2"/>
+  <text x="32.0" y="89.3" font-family="Inter, Roboto, Arial, sans-serif" font-size="14" font-weight="400" fill="#2C4A4A">Buscar por hotel, cliente o email</text>
+</g>
+<g id="chip-Todas">
+  <rect x="16" y="128" width="73" height="32" rx="16" fill="#2E5E3E"/>
+  <text x="52.5" y="140.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#FAF9F6" text-anchor="middle">Todas</text>
+</g>
+<g id="chip-Pendiente">
+  <rect x="96" y="128" width="109" height="32" rx="16" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1"/>
+  <text x="150.5" y="140.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#2E5E3E" text-anchor="middle">Pendiente</text>
+</g>
+<g id="chip-Confirmada">
+  <rect x="196" y="128" width="118" height="32" rx="16" fill="#FAF9F6" stroke="#2E5E3E" stroke-width="1"/>
+  <text x="255.0" y="140.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="600" fill="#2E5E3E" text-anchor="middle">Confirmada</text>
+</g>
+<g id="admin-reserva" filter="url(#shadow-sm)">
+  <rect x="16" y="172" width="358" height="150" rx="14" fill="#F3F1EA"/>
+  <text x="32.0" y="194.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Eco Lodge Selva Verde</text>
+  <g id="status-Pendiente">
+  <rect x="278" y="186" width="103" height="26" rx="8" fill="#FDF0E4"/>
+  <text x="289.0" y="195.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="600" fill="#E8954A">Pendiente</text>
+</g>
+  <text x="32.0" y="222.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Cliente: Jesus Uceda</text>
+  <text x="32.0" y="246.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="700" fill="#2E5E3E">Total: S/ 840</text>
+  <text x="32.0" y="270.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">20/07/2026 - 23/07/2026</text>
+</g>
+<g id="admin-reserva" filter="url(#shadow-sm)">
+  <rect x="16" y="338" width="358" height="150" rx="14" fill="#F3F1EA"/>
+  <text x="32.0" y="360.1" font-family="Inter, Roboto, Arial, sans-serif" font-size="16" font-weight="600" fill="#1A2E1A">Tambopata Jungle Lodge</text>
+  <g id="status-Confirmada">
+  <rect x="278" y="352" width="112" height="26" rx="8" fill="#E8F0EA"/>
+  <text x="289.0" y="361.2" font-family="Inter, Roboto, Arial, sans-serif" font-size="11" font-weight="600" fill="#2E5E3E">Confirmada</text>
+</g>
+  <text x="32.0" y="388.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">Cliente: Maria Lopez</text>
+  <text x="32.0" y="412.9" font-family="Inter, Roboto, Arial, sans-serif" font-size="13" font-weight="700" fill="#2E5E3E">Total: S/ 600</text>
+  <text x="32.0" y="436.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="12" font-weight="400" fill="#2C4A4A">20/07/2026 - 23/07/2026</text>
+</g>
+<g id="fab">
+  <rect x="322" y="776" width="52" height="52" rx="26" fill="#E8954A"/>
+  <text x="348.0" y="802.6" font-family="Inter, Roboto, Arial, sans-serif" font-size="28" font-weight="600" fill="#FAF9F6" text-anchor="middle">+</text>
+</g>
+  </g>
+</svg>

@@ -1,0 +1,430 @@
+@startuml casos_de_uso_detallado_cliente
+' Diagrama UML detallado - Modulo Cliente
+' Formato: frontera azul, hub central, include, extend, especializacion
+scale max 4096 width
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+  FontSize 11
+}
+skinparam actor {
+  BorderColor black
+}
+skinparam rectangle {
+  BackgroundColor #D9EAF7
+  BorderColor black
+}
+skinparam package {
+  BackgroundColor #EEF6FC
+  BorderColor #2E5E3E
+}
+skinparam note {
+  BackgroundColor #FFFFEE
+  BorderColor #999999
+  FontSize 10
+}
+
+title Diagrama de Casos de Uso Detallado - Modulo Cliente\nSistema Selva Booking
+
+actor Cliente as CLI
+actor "Firebase" as FB
+actor "Pasarela\nsimulada" as PAY
+
+rectangle "Sistema Selva Booking" as SYS {
+
+  ' ── ENTRADA ──
+  usecase "Acceder al\nsistema" as UCAcceder
+  usecase "Validar\ncredenciales" as UCValidar
+  usecase "Aceptar\nterminos" as UCTerminos
+
+  ' ── HUB CENTRAL ──
+  usecase "Gestionar\nreserva ecoturistica" as UCHub
+
+  ' ── EXTENSIONES OPCIONALES ──
+  usecase "Cancelar\nreserva" as UCCancelar
+  usecase "Guardar tarjeta\nfuturas reservas" as UCGuardarTarjeta
+  usecase "Usar tarjeta\nguardada" as UCTarjetaGuardada
+
+  package "Explorar alojamiento" as PKG_EXP {
+    usecase "Ver inicio\ny destacados" as UCInicio
+    usecase "Buscar y\ncomparar hoteles" as UCBuscar
+    usecase "Filtrar y\nordenar" as UCFiltrar
+    usecase "Ver detalle\nde hotel" as UCDetalle
+    usecase "Ver galeria\nde imagenes" as UCGaleria
+  }
+
+  package "Completar reserva" as PKG_RES {
+    usecase "Seleccionar\nfechas" as UCFechas
+    usecase "Definir\nhuespedes" as UCHuespedes
+    usecase "Validar\ndisponibilidad" as UCValidarFechas
+    usecase "Calcular\nprecio total" as UCPrecio
+    usecase "Crear reserva\npendiente" as UCCrearReserva
+  }
+
+  package "Realizar pago" as PKG_PAG {
+    usecase "Ver resumen\nde pago" as UCResumen
+    usecase "Ingresar datos\nde tarjeta" as UCDatosTarjeta
+    usecase "Ingresar direccion\nde facturacion" as UCFacturacion
+    usecase "Validar datos\nde tarjeta" as UCValidarTarjeta
+    usecase "Confirmar pago\ny reserva" as UCConfirmar
+  }
+
+  package "Consultar reservas" as PKG_CON {
+    usecase "Listar\nmis reservas" as UCListar
+    usecase "Filtrar por\nestado" as UCFiltrarEstado
+  }
+
+  package "Gestionar cuenta" as PKG_CTA {
+    usecase "Ver y editar\nperfil" as UCPerfil
+    usecase "Subir foto\nde perfil" as UCFoto
+    usecase "Solicitar acceso\nadministrador" as UCSolicitarAdmin
+  }
+
+  package "Soporte" as PKG_SUP {
+    usecase "Consultar\nFAQ y ayuda" as UCSoporte
+  }
+}
+
+' ── ACTORES ──
+CLI --> UCAcceder
+CLI --> UCPerfil
+CLI --> UCSoporte
+FB --> UCHub
+FB --> UCPerfil
+FB --> UCFoto
+PAY --> UCValidarTarjeta
+PAY --> UCConfirmar
+
+' ── INCLUDE ──
+UCAcceder ..> UCValidar : <<include>>
+UCAcceder ..> UCHub : <<include>>
+UCBuscar ..> UCFiltrar : <<include>>
+UCDetalle ..> UCGaleria : <<include>>
+UCFechas ..> UCValidarFechas : <<include>>
+UCFechas ..> UCPrecio : <<include>>
+UCCrearReserva ..> UCPrecio : <<include>>
+UCConfirmar ..> UCValidarTarjeta : <<include>>
+UCConfirmar ..> UCResumen : <<include>>
+UCListar ..> UCFiltrarEstado : <<include>>
+
+' ── EXTEND ──
+UCTerminos ..> UCAcceder : <<extend>>
+UCCancelar ..> UCHub : <<extend>>
+UCGuardarTarjeta ..> UCConfirmar : <<extend>>
+UCTarjetaGuardada ..> UCDatosTarjeta : <<extend>>
+
+' ── ESPECIALIZACION (hacia hub) ──
+UCInicio --|> UCHub
+UCBuscar --|> UCHub
+UCDetalle --|> UCHub
+UCFechas --|> UCHub
+UCCrearReserva --|> UCHub
+UCResumen --|> UCHub
+UCConfirmar --|> UCHub
+UCListar --|> UCHub
+UCPerfil --|> UCHub
+UCSoporte --|> UCHub
+
+' ── NOTAS DETALLADAS ──
+note right of UCAcceder
+  **Acceder al sistema**
+  - Mostrar splash inicial
+  - Iniciar sesion con email/clave
+  - Registrarse como cliente nuevo
+  - Recuperar contraseña olvidada
+  - Restaurar sesion si ya existe
+end note
+
+note bottom of UCHub
+  **Gestionar reserva ecoturistica**
+  Caso central que agrupa todo el
+  flujo del cliente: explorar hoteles
+  en Madre de Dios, reservar habitacion,
+  pagar y consultar sus reservas.
+end note
+
+note bottom of UCInicio
+  Ver hoteles destacados, ofertas
+  y recomendados en pantalla Inicio.
+end note
+
+note bottom of UCBuscar
+  Buscar por nombre o ciudad.
+  Comparar precios y valoraciones.
+end note
+
+note bottom of UCDetalle
+  Ver descripcion, servicios, ubicacion,
+  calificacion y habitaciones disponibles.
+end note
+
+note bottom of UCFechas
+  Elegir fecha ingreso y salida
+  con selector de calendario.
+end note
+
+note bottom of UCHuespedes
+  Aumentar o disminuir numero de
+  personas respetando capacidad.
+end note
+
+note bottom of UCCrearReserva
+  Guardar reserva en Firestore
+  con estado PENDIENTE.
+end note
+
+note bottom of UCResumen
+  Mostrar hotel, habitacion, fechas,
+  huespedes y total a pagar.
+end note
+
+note bottom of UCDatosTarjeta
+  Ingresar numero, vencimiento,
+  CVC y titular de la tarjeta.
+end note
+
+note bottom of UCFacturacion
+  Completar direccion de facturacion
+  en Peru / Madre de Dios.
+end note
+
+note bottom of UCConfirmar
+  Simular pago, confirmar reserva
+  y cambiar estado a CONFIRMADA.
+end note
+
+note bottom of UCListar
+  Ver reservas propias en tiempo real
+  desde Firestore.
+end note
+
+note bottom of UCCancelar
+  Cancelar reserva pendiente o
+  confirmada del cliente.
+end note
+
+note bottom of UCPerfil
+  Ver nombre, email, rol y editar
+  datos personales.
+end note
+
+note top of UCCancelar
+  **Extension opcional**
+end note
+
+note top of UCGuardarTarjeta
+  **Extension opcional**
+  Tras pago exitoso, guardar
+  ultimos 4 digitos y facturacion.
+end note
+
+' ── LAYOUT ──
+UCAcceder -[hidden]down- UCHub
+UCHub -[hidden]down- PKG_EXP
+PKG_EXP -[hidden]down- PKG_RES
+PKG_RES -[hidden]down- PKG_PAG
+PKG_PAG -[hidden]down- PKG_CON
+UCCancelar -[hidden]left- UCAcceder
+UCGuardarTarjeta -[hidden]right- UCCancelar
+
+@enduml
+
+@startuml casos_de_uso_detallado_admin
+scale max 4096 width
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+  FontSize 11
+}
+skinparam actor {
+  BorderColor black
+}
+skinparam rectangle {
+  BackgroundColor #D9EAF7
+  BorderColor black
+}
+skinparam package {
+  BackgroundColor #EEF6FC
+  BorderColor #2E5E3E
+}
+skinparam note {
+  BackgroundColor #FFFFEE
+  BorderColor #999999
+  FontSize 10
+}
+
+title Diagrama de Casos de Uso Detallado - Modulo Administrador\nSistema Selva Booking
+
+actor Administrador as ADM
+actor "Firebase" as FB
+
+rectangle "Sistema Selva Booking" as SYS {
+
+  usecase "Acceder al\npanel admin" as UCAcceder
+  usecase "Validar\npermisos admin" as UCValidar
+
+  usecase "Gestionar\noperaciones admin" as UCHub
+
+  usecase "Rechazar\nsolicitud admin" as UCRechazar
+  usecase "Alternar a\nmodo cliente" as UCModoCliente
+
+  package "Dashboard" as PKG_DASH {
+    usecase "Ver estadisticas\ngenerales" as UCEstats
+    usecase "Ver alerta\nsolicitudes" as UCAlerta
+    usecase "Sembrar datos\nde ejemplo" as UCSeed
+  }
+
+  package "Gestionar hoteles" as PKG_HOT {
+    usecase "Listar\nhoteles" as UCListarHot
+    usecase "Registrar\nhotel" as UCAltaHot
+    usecase "Editar\nhotel" as UCEditHot
+    usecase "Eliminar\nhotel" as UCBajaHot
+    usecase "Subir imagenes\nde hotel" as UCImgHot
+  }
+
+  package "Gestionar habitaciones" as PKG_ROOM {
+    usecase "Listar\nhabitaciones" as UCListarRoom
+    usecase "Registrar\nhabitacion" as UCAltaRoom
+    usecase "Editar\nhabitacion" as UCEditRoom
+    usecase "Eliminar\nhabitacion" as UCBajaRoom
+    usecase "Subir imagenes\nde habitacion" as UCImgRoom
+    usecase "Sincronizar\nprecio minimo" as UCSyncPrecio
+  }
+
+  package "Gestionar reservas" as PKG_RES {
+    usecase "Listar todas\nlas reservas" as UCListarRes
+    usecase "Buscar\nreservas" as UCBuscarRes
+    usecase "Crear reserva\nmanual" as UCAltaRes
+    usecase "Editar\nreserva" as UCEditRes
+    usecase "Confirmar\nreserva" as UCConfRes
+    usecase "Cancelar\nreserva" as UCCancRes
+    usecase "Completar\nreserva" as UCCompRes
+    usecase "Eliminar\nreserva" as UCBajaRes
+  }
+
+  package "Gestionar solicitudes" as PKG_SOL {
+    usecase "Listar solicitudes\npendientes" as UCListarSol
+    usecase "Aprobar\nsolicitud" as UCAprobar
+  }
+
+  package "Cuenta y soporte" as PKG_CTA {
+    usecase "Ver y editar\nperfil admin" as UCPerfil
+    usecase "Consultar\nFAQ y ayuda" as UCSoporte
+  }
+}
+
+ADM --> UCAcceder
+ADM --> UCPerfil
+FB --> UCHub
+
+UCAcceder ..> UCValidar : <<include>>
+UCAcceder ..> UCHub : <<include>>
+UCAltaHot ..> UCImgHot : <<include>>
+UCEditHot ..> UCImgHot : <<include>>
+UCAltaRoom ..> UCImgRoom : <<include>>
+UCEditRoom ..> UCImgRoom : <<include>>
+UCEditRoom ..> UCSyncPrecio : <<include>>
+UCBajaRoom ..> UCSyncPrecio : <<include>>
+UCBajaHot ..> UCListarRoom : <<include>>
+
+UCRechazar ..> UCHub : <<extend>>
+UCModoCliente ..> UCPerfil : <<extend>>
+UCAlerta ..> UCEstats : <<extend>>
+UCAprobar ..> UCListarSol : <<extend>>
+
+UCEstats --|> UCHub
+UCListarHot --|> UCHub
+UCAltaHot --|> UCHub
+UCEditHot --|> UCHub
+UCBajaHot --|> UCHub
+UCListarRoom --|> UCHub
+UCAltaRoom --|> UCHub
+UCEditRoom --|> UCHub
+UCBajaRoom --|> UCHub
+UCListarRes --|> UCHub
+UCAltaRes --|> UCHub
+UCEditRes --|> UCHub
+UCConfRes --|> UCHub
+UCListarSol --|> UCHub
+UCPerfil --|> UCHub
+UCSoporte --|> UCHub
+
+note right of UCAcceder
+  **Acceder al panel admin**
+  - Iniciar sesion como administrador
+  - Validar rol ADMINISTRADOR
+  - Redirigir al dashboard
+end note
+
+note bottom of UCHub
+  **Gestionar operaciones admin**
+  Caso central: administrar catalogo
+  de hoteles ecoturisticos, habitaciones,
+  reservas de clientes y solicitudes
+  de acceso administrador.
+end note
+
+note bottom of UCEstats
+  Ver totales de hoteles, habitaciones,
+  reservas activas, usuarios y
+  solicitudes pendientes.
+end note
+
+note bottom of UCAltaHot
+  Registrar nombre, ciudad, direccion,
+  categoria, estrellas, servicios,
+  precio minimo e imagenes.
+end note
+
+note bottom of UCBajaHot
+  Eliminar hotel y todas sus
+  habitaciones en cascada.
+end note
+
+note bottom of UCAltaRoom
+  Registrar nombre, precio, capacidad,
+  descripcion, disponibilidad e imagenes.
+end note
+
+note bottom of UCSyncPrecio
+  Recalcular precioMinimo del hotel
+  segun habitaciones activas.
+end note
+
+note bottom of UCAltaRes
+  Crear reserva manual con hotel,
+  habitacion, cliente, fechas y total.
+end note
+
+note bottom of UCConfRes
+  Cambiar estado de reserva
+  a CONFIRMADA.
+end note
+
+note bottom of UCCompRes
+  Marcar reserva como COMPLETADA
+  al finalizar la estadia.
+end note
+
+note bottom of UCAprobar
+  Promover usuario a administrador
+  y habilitar alternancia de rol.
+end note
+
+note bottom of UCRechazar
+  Rechazar solicitud de acceso
+  administrador del cliente.
+end note
+
+UCAcceder -[hidden]down- UCHub
+UCHub -[hidden]down- PKG_DASH
+PKG_DASH -[hidden]down- PKG_HOT
+PKG_HOT -[hidden]down- PKG_ROOM
+PKG_ROOM -[hidden]down- PKG_RES
+UCRechazar -[hidden]left- UCAcceder
+
+@enduml

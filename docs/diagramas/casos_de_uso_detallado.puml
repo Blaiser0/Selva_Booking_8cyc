@@ -1,0 +1,344 @@
+@startuml casos_de_uso_00_general
+' Selva Booking - Vista general
+top to bottom direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F3F1EA
+  BorderColor #2E5E3E
+}
+skinparam actor {
+  BorderColor #2E5E3E
+}
+
+title Selva Booking - Diagrama General de Casos de Uso
+
+actor "Invitado" as INV
+actor "Cliente" as CLI
+actor "Administrador" as ADM
+
+rectangle "Sistema Selva Booking" {
+
+  package "Acceso al sistema" #E8EDE9 {
+    usecase "Iniciar sesion" as UC02
+    usecase "Registrarse" as UC03
+    usecase "Recuperar contraseña" as UC04
+    usecase "Cerrar sesion" as UC05
+  }
+
+  package "Modulo Cliente" #E8EDE9 {
+    usecase "Explorar y buscar hoteles" as UC12
+    usecase "Ver detalle de hotel" as UC15
+    usecase "Completar reserva" as UC18
+    usecase "Realizar pago" as UC22
+    usecase "Gestionar mis reservas" as UC30
+    usecase "Gestionar mi cuenta" as UC33
+  }
+
+  package "Modulo Administrador" #E8EDE9 {
+    usecase "Ver dashboard" as UC38
+    usecase "Gestionar solicitudes admin" as UC41
+    usecase "Gestionar hoteles" as UC44
+    usecase "Gestionar habitaciones" as UC50
+    usecase "Gestionar reservas" as UC56
+  }
+
+  package "Compartido" #E8EDE9 {
+    usecase "Consultar soporte" as UC66
+  }
+}
+
+INV --> UC02
+INV --> UC03
+INV --> UC04
+
+CLI --> UC05
+CLI --> UC12
+CLI --> UC15
+CLI --> UC18
+CLI --> UC22
+CLI --> UC30
+CLI --> UC33
+CLI --> UC66
+
+ADM --> UC05
+ADM --> UC38
+ADM --> UC41
+ADM --> UC44
+ADM --> UC50
+ADM --> UC56
+ADM --> UC33
+ADM --> UC66
+
+UC15 ..> UC12 : <<extend>>
+UC18 ..> UC15 : <<extend>>
+UC22 ..> UC18 : <<extend>>
+UC30 ..> UC22 : <<extend>>
+UC50 ..> UC44 : <<extend>>
+UC56 ..> UC38 : <<extend>>
+
+@enduml
+
+@startuml casos_de_uso_01_autenticacion
+top to bottom direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F3F1EA
+  BorderColor #2E5E3E
+}
+
+title Modulo 1 - Autenticacion y Sesion (UC-01 a UC-10)
+
+actor "Invitado" as INV
+actor "Cliente / Admin" as USR
+actor "Firebase Auth" as FB #LightBlue
+
+rectangle "Autenticacion y sesion" {
+
+  usecase "UC-01\nVisualizar splash" as UC01
+  usecase "UC-02\nIniciar sesion" as UC02
+  usecase "UC-03\nRegistrarse" as UC03
+  usecase "UC-04\nRecuperar contraseña" as UC04
+  usecase "UC-05\nCerrar sesion" as UC05
+  usecase "UC-06\nRestaurar sesion" as UC06
+
+  package "Subcasos incluidos" #FFFFFF {
+    usecase "UC-07\nValidar credenciales" as UC07
+    usecase "UC-08\nAceptar terminos" as UC08
+    usecase "UC-09\nValidar registro" as UC09
+    usecase "UC-10\nEnviar correo reset" as UC10
+  }
+}
+
+INV --> UC01
+INV --> UC02
+INV --> UC03
+INV --> UC04
+USR --> UC05
+
+UC01 ..> UC06 : <<include>>
+UC02 ..> UC07 : <<include>>
+UC03 ..> UC07 : <<include>>
+UC03 ..> UC08 : <<include>>
+UC03 ..> UC09 : <<include>>
+UC04 ..> UC10 : <<include>>
+
+UC02 --> FB
+UC03 --> FB
+UC04 --> FB
+UC05 --> FB
+UC06 --> FB
+
+@enduml
+
+@startuml casos_de_uso_02_cliente
+top to bottom direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F3F1EA
+  BorderColor #2E5E3E
+}
+
+title Modulo 2 - Cliente: Exploracion, Reserva, Pago y Cuenta (UC-11 a UC-37)
+
+actor "Cliente" as CLI
+actor "Firebase" as FB #LightBlue
+actor "Pasarela simulada" as PAY #LightGray
+
+rectangle "Modulo Cliente" {
+
+  package "A. Exploracion" #E8EDE9 {
+    usecase "UC-11\nVer inicio" as UC11
+    usecase "UC-12\nBuscar hoteles" as UC12
+    usecase "UC-15\nVer detalle hotel" as UC15
+    usecase "UC-13\nFiltrar" as UC13
+    usecase "UC-14\nOrdenar" as UC14
+    usecase "UC-16\nVer galeria" as UC16
+    usecase "UC-17\nVer habitaciones" as UC17
+  }
+
+  package "B. Reserva y pago" #E8EDE9 {
+    usecase "UC-18\nCompletar reserva" as UC18
+    usecase "UC-22\nRealizar pago" as UC22
+    usecase "UC-30\nVer mis reservas" as UC30
+    usecase "UC-19\nValidar fechas" as UC19
+    usecase "UC-20\nCalcular precio" as UC20
+    usecase "UC-21\nCrear reserva" as UC21
+    usecase "UC-23\nValidar tarjeta" as UC23
+    usecase "UC-24\nConfirmar reserva" as UC24
+    usecase "UC-25\nResumen de pago" as UC25
+    usecase "UC-26\nDir. facturacion" as UC26
+    usecase "UC-31\nFiltrar reservas" as UC31
+    usecase "UC-32\nCancelar reserva" as UC32
+    usecase "UC-27\nGuardar tarjeta" as UC27
+    usecase "UC-28\nTarjeta guardada" as UC28
+    usecase "UC-29\nTarjeta alternativa" as UC29
+  }
+
+  package "C. Mi cuenta" #E8EDE9 {
+    usecase "UC-33\nVer perfil" as UC33
+    usecase "UC-34\nEditar nombre" as UC34
+    usecase "UC-35\nSubir foto" as UC35
+    usecase "UC-36\nSolicitar admin" as UC36
+    usecase "UC-37\nModo admin" as UC37
+  }
+
+  package "D. Soporte" #E8EDE9 {
+    usecase "UC-66\nSoporte y FAQ" as UC66
+  }
+}
+
+CLI --> UC11
+CLI --> UC12
+CLI --> UC15
+CLI --> UC18
+CLI --> UC22
+CLI --> UC30
+CLI --> UC33
+CLI --> UC36
+CLI --> UC66
+
+' Exploracion
+UC13 ..> UC12 : <<extend>>
+UC14 ..> UC12 : <<extend>>
+UC16 ..> UC15 : <<extend>>
+UC15 ..> UC17 : <<include>>
+
+' Reserva
+UC18 ..> UC19 : <<include>>
+UC18 ..> UC20 : <<include>>
+UC18 ..> UC21 : <<include>>
+UC22 ..> UC23 : <<include>>
+UC22 ..> UC24 : <<include>>
+UC22 ..> UC25 : <<include>>
+UC22 ..> UC26 : <<include>>
+UC27 ..> UC22 : <<extend>>
+UC28 ..> UC22 : <<extend>>
+UC29 ..> UC22 : <<extend>>
+UC31 ..> UC30 : <<include>>
+UC32 ..> UC30 : <<extend>>
+
+' Cuenta
+UC34 ..> UC33 : <<extend>>
+UC35 ..> UC33 : <<extend>>
+UC37 ..> UC33 : <<extend>>
+
+' Sistemas externos (solo casos clave)
+UC11 --> FB
+UC12 --> FB
+UC15 --> FB
+UC21 --> FB
+UC24 --> FB
+UC30 --> FB
+UC32 --> FB
+UC33 --> FB
+UC35 --> FB
+UC36 --> FB
+UC22 --> PAY
+UC27 --> PAY
+
+@enduml
+
+@startuml casos_de_uso_03_administrador
+top to bottom direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F3F1EA
+  BorderColor #2E5E3E
+}
+
+title Modulo 3 - Administrador: Panel, Catalogo y Reservas (UC-38 a UC-65)
+
+actor "Administrador" as ADM
+actor "Firebase" as FB #LightBlue
+
+rectangle "Modulo Administrador" {
+
+  package "A. Panel" #E8EDE9 {
+    usecase "UC-38\nVer dashboard" as UC38
+    usecase "UC-39\nAlerta solicitudes" as UC39
+    usecase "UC-40\nSembrar datos ejemplo" as UC40
+  }
+
+  package "B. Solicitudes admin" #E8EDE9 {
+    usecase "UC-41\nListar solicitudes" as UC41
+    usecase "UC-42\nAprobar solicitud" as UC42
+    usecase "UC-43\nRechazar solicitud" as UC43
+  }
+
+  package "C. Hoteles" #E8EDE9 {
+    usecase "UC-44\nListar hoteles" as UC44
+    usecase "UC-45\nRegistrar hotel" as UC45
+    usecase "UC-46\nEditar hotel" as UC46
+    usecase "UC-47\nEliminar hotel" as UC47
+    usecase "UC-48\nImagenes hotel" as UC48
+    usecase "UC-49\nIr a habitaciones" as UC49
+  }
+
+  package "D. Habitaciones" #E8EDE9 {
+    usecase "UC-50\nListar habitaciones" as UC50
+    usecase "UC-51\nRegistrar habitacion" as UC51
+    usecase "UC-52\nEditar habitacion" as UC52
+    usecase "UC-53\nEliminar habitacion" as UC53
+    usecase "UC-54\nImagenes habitacion" as UC54
+    usecase "UC-55\nSync precio minimo" as UC55
+  }
+
+  package "E. Reservas" #E8EDE9 {
+    usecase "UC-56\nListar reservas" as UC56
+    usecase "UC-57\nBuscar reservas" as UC57
+    usecase "UC-58\nVer detalle" as UC58
+    usecase "UC-59\nCrear reserva" as UC59
+    usecase "UC-60\nEditar reserva" as UC60
+    usecase "UC-61\nEliminar reserva" as UC61
+    usecase "UC-62\nConfirmar" as UC62
+    usecase "UC-63\nCancelar" as UC63
+    usecase "UC-64\nCompletar" as UC64
+  }
+
+  package "F. Cuenta y soporte" #E8EDE9 {
+    usecase "UC-33\nVer perfil" as UC33
+    usecase "UC-65\nModo cliente" as UC65
+    usecase "UC-66\nSoporte y FAQ" as UC66
+  }
+}
+
+ADM --> UC38
+ADM --> UC41
+ADM --> UC44
+ADM --> UC49
+ADM --> UC50
+ADM --> UC56
+ADM --> UC33
+ADM --> UC66
+
+UC39 ..> UC38 : <<extend>>
+UC42 ..> UC41 : <<extend>>
+UC43 ..> UC41 : <<extend>>
+UC45 ..> UC48 : <<include>>
+UC46 ..> UC48 : <<include>>
+UC51 ..> UC54 : <<include>>
+UC52 ..> UC54 : <<include>>
+UC52 ..> UC55 : <<include>>
+UC53 ..> UC55 : <<include>>
+UC57 ..> UC56 : <<extend>>
+UC58 ..> UC56 : <<extend>>
+UC62 ..> UC58 : <<extend>>
+UC63 ..> UC58 : <<extend>>
+UC64 ..> UC58 : <<extend>>
+UC65 ..> UC33 : <<extend>>
+
+UC49 ..> UC44 : <<extend>>
+UC50 ..> UC49 : <<extend>>
+
+UC38 --> FB
+UC40 --> FB
+UC41 --> FB
+UC44 --> FB
+UC50 --> FB
+UC56 --> FB
+
+@enduml
