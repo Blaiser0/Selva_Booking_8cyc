@@ -1,0 +1,51 @@
+@startuml casos_uso_invitado
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+left to right direction
+title Selva Booking — Casos de uso: Invitado
+
+actor "Invitado" as INV
+actor "Firebase" as FB <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  usecase "Iniciar sesión" as UC01
+  usecase "Validar credenciales" as UC01A
+  usecase "Autenticar en\nFirebase Auth" as UC01B
+  usecase "Obtener perfil\nde usuario" as UC01C
+
+  usecase "Registrarse" as UC02
+  usecase "Validar nombre\n(solo letras)" as UC02A
+  usecase "Validar teléfono\n(9 dígitos)" as UC02B
+  usecase "Validar correo\ny contraseña" as UC02C
+  usecase "Aceptar términos\ny condiciones" as UC02D
+  usecase "Crear cuenta Auth\n+ Firestore" as UC02E
+
+  usecase "Recuperar contraseña" as UC03
+  usecase "Validar correo\nregistrado" as UC03A
+  usecase "Enviar correo\nde recuperación" as UC03B
+}
+
+INV --> UC01
+INV --> UC02
+INV --> UC03
+
+UC01 ..> UC01A : <<incluye>>
+UC01 ..> UC01B : <<incluye>>
+UC01 ..> UC01C : <<incluye>>
+
+UC02 ..> UC02A : <<incluye>>
+UC02 ..> UC02B : <<incluye>>
+UC02 ..> UC02C : <<incluye>>
+UC02 ..> UC02D : <<incluye>>
+UC02 ..> UC02E : <<incluye>>
+
+UC03 ..> UC03A : <<incluye>>
+UC03 ..> UC03B : <<incluye>>
+
+UC01B ..> FB : <<incluye>>
+UC02E ..> FB : <<incluye>>
+UC03B ..> FB : <<incluye>>
+
+@enduml

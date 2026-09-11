@@ -37,11 +37,13 @@ fun SelvaButton(
 fun SelvaOutlinedButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(text = text, style = MaterialTheme.typography.labelLarge)

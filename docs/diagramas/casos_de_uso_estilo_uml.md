@@ -1,5 +1,7 @@
 # Diagrama de Casos de Uso Detallado — Selva Booking
 
+> **Documento consolidado:** ver [UML.md](UML.md) para todos los diagramas UML en un solo archivo (sin dependencia de PNG).
+
 **Proyecto:** Selva Booking · Android · Firebase  
 **Fuente:** Elaboración propia  
 **Formato:** UML clásico (frontera azul, óvalos, actores, `<<include>>`, `<<extend>>`, especialización, notas)

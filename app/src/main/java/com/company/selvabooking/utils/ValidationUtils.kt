@@ -4,6 +4,15 @@ import android.util.Patterns
 
 object ValidationUtils {
 
+    const val MAX_PHONE_LENGTH = 9
+    private const val MIN_NAME_LENGTH = 3
+
+    fun filterPhoneInput(value: String): String =
+        value.filter { it.isDigit() }.take(MAX_PHONE_LENGTH)
+
+    fun filterPersonNameInput(value: String): String =
+        value.filter { it.isLetter() || it == ' ' }
+
     fun isValidEmail(email: String): Boolean {
         return email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
     }
@@ -13,11 +22,14 @@ object ValidationUtils {
     }
 
     fun isValidPhone(phone: String): Boolean {
-        return phone.isNotBlank() && phone.trim().length >= 9
+        val digits = phone.filter { it.isDigit() }
+        return digits.length == MAX_PHONE_LENGTH
     }
 
     fun isValidName(name: String): Boolean {
-        return name.trim().length >= 3
+        val trimmed = name.trim()
+        return trimmed.length >= MIN_NAME_LENGTH &&
+            trimmed.all { it.isLetter() || it == ' ' }
     }
 
     fun passwordsMatch(password: String, confirmPassword: String): Boolean {

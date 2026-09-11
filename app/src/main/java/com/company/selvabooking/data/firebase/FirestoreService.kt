@@ -1,11 +1,14 @@
 package com.company.selvabooking.data.firebase
 
+import com.company.selvabooking.domain.model.AuditLog
 import com.company.selvabooking.domain.model.Hotel
 import com.company.selvabooking.domain.model.Resena
 import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.Room
 import com.company.selvabooking.domain.model.User
+import com.company.selvabooking.domain.model.UserRole
 import com.company.selvabooking.utils.Constants
+import com.company.selvabooking.utils.HotelFormOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -50,12 +53,37 @@ class FirestoreService(
         Result.failure(e)
     }
 
+    suspend fun deleteUser(userId: String): Result<Unit> = try {
+        firestore.collection(Constants.COLLECTION_USUARIOS)
+            .document(userId)
+            .delete()
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     suspend fun getAllUsers(): Result<List<User>> = try {
         val snapshot = firestore.collection(Constants.COLLECTION_USUARIOS).get().await()
         val users = snapshot.documents.map { User.fromMap(it.id, it.data ?: emptyMap()) }
         Result.success(users)
     } catch (e: Exception) {
         Result.failure(e)
+    }
+
+    fun getAllUsersFlow(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_USUARIOS)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.documents?.map {
+                    User.fromMap(it.id, it.data ?: emptyMap())
+                } ?: emptyList()
+                trySend(users)
+            }
+        awaitClose { listener.remove() }
     }
 
     fun getPendingAdminRequestsFlow(): Flow<List<User>> = callbackFlow {
@@ -87,6 +115,84 @@ class FirestoreService(
                 trySend(hotels)
             }
         awaitClose { listener.remove() }
+    }
+
+    fun getHotelsByOwnerFlow(ownerId: String): Flow<List<Hotel>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_HOTELES)
+            .whereEqualTo("propietarioId", ownerId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val hotels = snapshot?.documents?.map {
+                    Hotel.fromMap(it.id, it.data ?: emptyMap())
+                } ?: emptyList()
+                trySend(hotels)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getAdministradoresFlow(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_USUARIOS)
+            .whereEqualTo("rol", UserRole.ADMINISTRADOR.value)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.documents?.map {
+                    User.fromMap(it.id, it.data ?: emptyMap())
+                } ?: emptyList()
+                trySend(users)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /** Administradores activos o en modo cliente con permiso de alternar rol. */
+    fun getAdministratorAccountsFlow(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_USUARIOS)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.documents?.map {
+                    User.fromMap(it.id, it.data ?: emptyMap())
+                }?.filter { it.isAdministratorAccount }
+                    ?.sortedBy { it.nombre.lowercase() } ?: emptyList()
+                trySend(users)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getGerentesHotelFlow(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_USUARIOS)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.documents?.map {
+                    User.fromMap(it.id, it.data ?: emptyMap())
+                }?.filter { user ->
+                    user.rol == UserRole.GERENTE_HOTEL ||
+                        UserRole.matchesEncargadoHotel(user.rolAlternativo)
+                }?.sortedBy { it.nombre.lowercase() } ?: emptyList()
+                trySend(users)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun getHotelsByOwner(ownerId: String): Result<List<Hotel>> = try {
+        val snapshot = firestore.collection(Constants.COLLECTION_HOTELES)
+            .whereEqualTo("propietarioId", ownerId)
+            .get()
+            .await()
+        val hotels = snapshot.documents.map { Hotel.fromMap(it.id, it.data ?: emptyMap()) }
+        Result.success(hotels)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
     suspend fun getAllHotels(): Result<List<Hotel>> = try {
@@ -209,6 +315,96 @@ class FirestoreService(
         Result.failure(e)
     }
 
+    suspend fun getRoom(roomId: String): Result<Room> = try {
+        val doc = firestore.collection(Constants.COLLECTION_HABITACIONES)
+            .document(roomId)
+            .get()
+            .await()
+        if (!doc.exists()) {
+            Result.failure(Exception("Habitación no encontrada"))
+        } else {
+            Result.success(Room.fromMap(doc.id, doc.data ?: emptyMap()))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun migrateOneHotelPerGerente(): Result<Unit> {
+        return try {
+            val hotels = getAllHotels().getOrElse { return Result.failure(it) }
+            val byOwner = hotels
+                .filter { it.propietarioId.isNotBlank() }
+                .groupBy { it.propietarioId }
+            for ((_, ownerHotels) in byOwner) {
+                if (ownerHotels.size <= HotelFormOptions.MAX_HOTELS_PER_GERENTE) continue
+                val keepHotel = ownerHotels.minWith(
+                    compareBy<Hotel> { it.nombre.lowercase() }.thenBy { it.id }
+                )
+                ownerHotels
+                    .filter { it.id != keepHotel.id }
+                    .forEach { hotel ->
+                        updateHotel(hotel.copy(propietarioId = "")).getOrElse {
+                            return Result.failure(it)
+                        }
+                    }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun migrateGerenteCreatorAssignments(): Result<Unit> {
+        return try {
+            val users = getAllUsers().getOrElse { return Result.failure(it) }
+            val remied = users.find { it.email.equals(Constants.ADMIN_REMED_EMAIL, ignoreCase = true) }
+            val lizy = users.find { it.email.equals(Constants.ADMIN_LIZY_EMAIL, ignoreCase = true) }
+            if (remied == null || lizy == null) {
+                return Result.success(Unit)
+            }
+            val gerentes = users.filter { user ->
+                user.rol == UserRole.GERENTE_HOTEL ||
+                    UserRole.matchesEncargadoHotel(user.rolAlternativo)
+            }.sortedBy { it.email.lowercase() }
+            for ((index, gerente) in gerentes.withIndex()) {
+                if (gerente.creadoPorAdminId.isNotBlank()) continue
+                val adminId = if (index % 2 == 0) remied.id else lizy.id
+                updateUser(gerente.copy(creadoPorAdminId = adminId)).getOrElse {
+                    return Result.failure(it)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun migrateRoomStockFields(): Result<Unit> = try {
+        val snapshot = firestore.collection(Constants.COLLECTION_HABITACIONES).get().await()
+        snapshot.documents.forEach { doc ->
+            val data = doc.data ?: return@forEach
+            val updates = mutableMapOf<String, Any>()
+            if (!data.containsKey("cantidad")) updates["cantidad"] = 1
+            if (!data.containsKey("stock")) updates["stock"] = 1
+            if (updates.isNotEmpty()) {
+                doc.reference.update(updates).await()
+            }
+        }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun getAllReservations(): Result<List<Reservation>> = try {
+        val snapshot = firestore.collection(Constants.COLLECTION_RESERVAS).get().await()
+        val reservations = snapshot.documents.map {
+            Reservation.fromMap(it.id, it.data ?: emptyMap())
+        }
+        Result.success(reservations)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     fun getReservationsFlow(): Flow<List<Reservation>> = callbackFlow {
         val listener = firestore.collection(Constants.COLLECTION_RESERVAS)
             .orderBy("createdAt", Query.Direction.DESCENDING)
@@ -282,6 +478,20 @@ class FirestoreService(
         Result.failure(e)
     }
 
+    suspend fun getReservation(reservationId: String): Result<Reservation> = try {
+        val doc = firestore.collection(Constants.COLLECTION_RESERVAS)
+            .document(reservationId)
+            .get()
+            .await()
+        if (!doc.exists()) {
+            Result.failure(Exception("Reserva no encontrada"))
+        } else {
+            Result.success(Reservation.fromMap(doc.id, doc.data ?: emptyMap()))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     suspend fun getRoomsByHotel(hotelId: String): Result<List<Room>> = try {
         val snapshot = firestore.collection(Constants.COLLECTION_HABITACIONES)
             .whereEqualTo("hotelId", hotelId)
@@ -304,6 +514,21 @@ class FirestoreService(
                 val resenas = snapshot?.documents?.map {
                     Resena.fromMap(it.id, it.data ?: emptyMap())
                 }?.sortedByDescending { it.createdAt } ?: emptyList()
+                trySend(resenas)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getAllResenasFlow(): Flow<List<Resena>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_RESENAS)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val resenas = snapshot?.documents?.map {
+                    Resena.fromMap(it.id, it.data ?: emptyMap())
+                } ?: emptyList()
                 trySend(resenas)
             }
         awaitClose { listener.remove() }
@@ -344,6 +569,60 @@ class FirestoreService(
         firestore.collection(Constants.COLLECTION_RESENAS)
             .document(resenaId)
             .delete()
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    fun getAuditLogsFlow(): Flow<List<AuditLog>> = callbackFlow {
+        val listener = firestore.collection(Constants.COLLECTION_AUDIT_LOGS)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val logs = snapshot?.documents?.map {
+                    AuditLog.fromMap(it.id, it.data ?: emptyMap())
+                } ?: emptyList()
+                trySend(logs)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun createAuditLog(log: AuditLog): Result<String> = try {
+        val ref = firestore.collection(Constants.COLLECTION_AUDIT_LOGS).document()
+        ref.set(log.copy(id = ref.id).toMap()).await()
+        Result.success(ref.id)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun getAuditLog(logId: String): Result<AuditLog> = try {
+        val doc = firestore.collection(Constants.COLLECTION_AUDIT_LOGS)
+            .document(logId)
+            .get()
+            .await()
+        if (doc.exists()) {
+            Result.success(AuditLog.fromMap(doc.id, doc.data ?: emptyMap()))
+        } else {
+            Result.failure(Exception("Registro de auditoría no encontrado"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun markAuditLogReverted(logId: String, adminUserId: String): Result<Unit> = try {
+        firestore.collection(Constants.COLLECTION_AUDIT_LOGS)
+            .document(logId)
+            .update(
+                mapOf(
+                    "reverted" to true,
+                    "revertedAt" to System.currentTimeMillis(),
+                    "revertedBy" to adminUserId
+                )
+            )
             .await()
         Result.success(Unit)
     } catch (e: Exception) {

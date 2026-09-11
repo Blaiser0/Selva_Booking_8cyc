@@ -377,6 +377,12 @@ fun RoomOfferCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Text(
+                    text = "Disponibles: ${room.stock} de ${room.cantidad}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (room.stock > 0) ForestGreen else MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -397,8 +403,9 @@ fun RoomOfferCard(
                         )
                     }
                     SelvaButton(
-                        text = "Reservar",
+                        text = if (room.isReservable) "Reservar" else "Agotado",
                         onClick = onBook,
+                        enabled = room.isReservable,
                         fillMaxWidth = false,
                         modifier = Modifier.widthIn(min = 120.dp, max = 140.dp)
                     )

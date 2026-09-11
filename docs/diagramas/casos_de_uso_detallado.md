@@ -1,5 +1,7 @@
 # Diagrama de Casos de Uso — Selva Booking
 
+> **Documento consolidado:** ver [UML.md](UML.md) para todos los diagramas UML en un solo archivo (nomenclatura corregida, reseñas UC-67–69, método de pago UC-70).
+
 **Proyecto:** Selva Booking · Android · Kotlin · Firebase  
 **Fuente:** Elaboración propia  
 **Total:** 66 casos de uso · 5 actores · 4 módulos

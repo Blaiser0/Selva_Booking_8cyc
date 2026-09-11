@@ -1,0 +1,43 @@
+@startuml secuencia_reserva
+!theme plain
+title Selva Booking — Secuencia: Reserva y pago (v2.1 — Jul 2026)
+
+actor Cliente as C
+participant "BookingScreen" as BS
+participant "BookingViewModel" as BVM
+participant "PaymentScreen" as PS
+participant "PaymentViewModel" as PVM
+participant "ReservationRepository" as RES
+participant "RoomRepository" as ROOM
+database "Firestore" as FS
+
+C -> BS : Selecciona fechas y huéspedes
+BS -> BVM : confirmBooking()
+BVM -> RES : createReservation()
+RES -> FS : guardar AWAITING_PAYMENT
+FS --> RES : reservationId
+RES --> BVM : OK
+BVM --> BS : navegar a Payment
+
+C -> PS : Ingresa tarjeta
+PS -> PVM : processPayment()
+PVM -> RES : updateStatus(CONFIRMADA)
+RES -> ROOM : decrementStock()
+ROOM -> FS : actualizar stock
+RES -> FS : actualizar reserva
+FS --> PVM : OK
+PVM --> PS : éxito
+PS --> C : Mis Reservas
+
+== Expiración automática ==
+
+participant "ViewModel init" as VM
+
+VM -> RES : expireFinishedReservations()
+RES -> FS : getAllReservations()
+loop CONFIRMADA con fecha vencida
+  RES -> ROOM : incrementStock()
+  RES -> FS : estado TERMINADA
+end
+
+@enduml

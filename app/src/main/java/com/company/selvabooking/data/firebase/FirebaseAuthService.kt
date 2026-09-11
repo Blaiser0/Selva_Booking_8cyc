@@ -1,5 +1,6 @@
 package com.company.selvabooking.data.firebase
 
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.channels.awaitClose
@@ -65,6 +66,38 @@ class FirebaseAuthService(
     suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return try {
             auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createUserWithoutSigningIn(email: String, password: String): Result<FirebaseUser> {
+        return try {
+            val defaultApp = FirebaseApp.getInstance()
+            val secondaryApp = FirebaseApp.getApps(defaultApp.applicationContext)
+                .find { it.name == "Secondary" }
+                ?: FirebaseApp.initializeApp(
+                    defaultApp.applicationContext,
+                    defaultApp.options,
+                    "Secondary"
+                )
+            val secondaryAuth = FirebaseAuth.getInstance(secondaryApp!!)
+            val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
+            secondaryAuth.signOut()
+            val user = result.user
+            if (user != null) Result.success(user)
+            else Result.failure(Exception("Error al crear usuario"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updatePassword(newPassword: String): Result<Unit> {
+        return try {
+            val user = auth.currentUser
+                ?: return Result.failure(Exception("No hay usuario autenticado"))
+            user.updatePassword(newPassword).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

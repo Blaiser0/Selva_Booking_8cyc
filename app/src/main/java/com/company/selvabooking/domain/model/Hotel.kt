@@ -15,7 +15,8 @@ data class Hotel(
     val servicios: List<String> = emptyList(),
     val ubicacion: String = "",
     val destacado: Boolean = false,
-    val oferta: Boolean = false
+    val oferta: Boolean = false,
+    val propietarioId: String = ""
 ) {
     fun effectiveBaseRating(): Double =
         if (calificacionBase > 0.0) calificacionBase else calificacion
@@ -34,7 +35,8 @@ data class Hotel(
         "servicios" to servicios,
         "ubicacion" to ubicacion,
         "destacado" to destacado,
-        "oferta" to oferta
+        "oferta" to oferta,
+        "propietarioId" to propietarioId
     )
 
     companion object {
@@ -56,7 +58,8 @@ data class Hotel(
             servicios = (map["servicios"] as? List<String>) ?: emptyList(),
             ubicacion = map["ubicacion"] as? String ?: "",
             destacado = map["destacado"] as? Boolean ?: false,
-            oferta = map["oferta"] as? Boolean ?: false
+            oferta = map["oferta"] as? Boolean ?: false,
+            propietarioId = map["propietarioId"] as? String ?: ""
         )
     }
 }

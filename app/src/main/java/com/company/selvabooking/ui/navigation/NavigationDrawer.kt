@@ -33,9 +33,11 @@ import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
@@ -62,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.company.selvabooking.domain.model.User
+import com.company.selvabooking.domain.model.UserRole
 import com.company.selvabooking.navigation.Routes
 import com.company.selvabooking.ui.theme.CreamSurfaceVariant
 import com.company.selvabooking.ui.theme.DarkText
@@ -123,7 +126,42 @@ val clientDrawerItems = listOf(
     )
 )
 
-val adminDrawerItems = listOf(
+val guestDrawerItems = listOf(
+    DrawerNavItem(
+        route = Routes.CLIENT_HOME,
+        label = "Inicio",
+        icon = Icons.Outlined.Home,
+        subtitle = "Explora hoteles destacados",
+        sectionTitle = "Menú principal"
+    ),
+    DrawerNavItem(
+        route = Routes.CLIENT_SEARCH,
+        label = "Buscar",
+        icon = Icons.Outlined.Search,
+        subtitle = "Compara precios y ofertas"
+    ),
+    DrawerNavItem(
+        route = Routes.SUPPORT,
+        label = "Soporte y Ayuda",
+        icon = Icons.AutoMirrored.Filled.HelpOutline,
+        subtitle = "Preguntas frecuentes y contacto"
+    ),
+    DrawerNavItem(
+        route = Routes.LOGIN,
+        label = "Iniciar sesión",
+        icon = Icons.Default.Person,
+        subtitle = "Reserva y paga con tu cuenta",
+        sectionTitle = "Cuenta"
+    ),
+    DrawerNavItem(
+        route = Routes.REGISTER,
+        label = "Crear cuenta",
+        icon = Icons.Outlined.Person,
+        subtitle = "Regístrate gratis"
+    )
+)
+
+val superAdminDrawerItems = listOf(
     DrawerNavItem(
         route = Routes.ADMIN_DASHBOARD,
         label = "Dashboard",
@@ -132,25 +170,144 @@ val adminDrawerItems = listOf(
         sectionTitle = "Administración"
     ),
     DrawerNavItem(
-        route = Routes.ADMIN_REQUESTS,
-        label = "Solicitudes",
+        route = Routes.ADMIN_ADMINISTRADORES,
+        label = "Administradores",
         icon = Icons.Default.AdminPanelSettings,
-        subtitle = "Aprobar accesos de admin"
+        subtitle = "Crear cuentas de administrador"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_GERENTES,
+        label = "Encargados del hotel",
+        icon = Icons.Default.Person,
+        subtitle = "Crear cuentas de encargado"
     ),
     DrawerNavItem(
         route = Routes.ADMIN_HOTELS,
         label = "Hoteles",
         icon = Icons.Default.Hotel,
-        subtitle = "Gestionar alojamientos"
+        subtitle = "Gestionar hoteles y habitaciones"
     ),
     DrawerNavItem(
         route = Routes.ADMIN_RESERVATIONS,
         label = "Reservas",
         icon = Icons.AutoMirrored.Filled.List,
-        subtitle = "Ver y administrar reservas"
+        subtitle = "Gestionar reservas del sistema"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_AUDIT,
+        label = "Registro y respaldos",
+        icon = Icons.Default.History,
+        subtitle = "Auditoría y revertir cambios de encargados"
     ),
     DrawerNavItem(
         route = Routes.ADMIN_PROFILE,
+        label = "Mi Cuenta",
+        icon = Icons.Outlined.Person,
+        subtitle = "Perfil y configuración",
+        sectionTitle = "Tu cuenta"
+    ),
+    DrawerNavItem(
+        route = Routes.SUPPORT,
+        label = "Soporte y Ayuda",
+        icon = Icons.AutoMirrored.Filled.HelpOutline,
+        subtitle = "Asistencia y documentación"
+    ),
+    DrawerNavItem(
+        route = null,
+        label = "Cerrar Sesión",
+        icon = Icons.AutoMirrored.Filled.Logout,
+        subtitle = "Salir de tu cuenta",
+        sectionTitle = "Sesión",
+        isLogout = true
+    )
+)
+
+val limitedAdminDrawerItems = listOf(
+    DrawerNavItem(
+        route = Routes.ADMIN_DASHBOARD,
+        label = "Dashboard",
+        icon = Icons.Default.Dashboard,
+        subtitle = "Resumen de la plataforma",
+        sectionTitle = "Administración"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_GERENTES,
+        label = "Encargados del hotel",
+        icon = Icons.Default.Person,
+        subtitle = "Crear y eliminar cuentas de encargado"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_HOTELS,
+        label = "Hoteles",
+        icon = Icons.Default.Hotel,
+        subtitle = "Consultar hoteles registrados"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_REVIEWS,
+        label = "Comentarios",
+        icon = Icons.Default.Star,
+        subtitle = "Opiniones de huéspedes en sus hoteles"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_RESERVATIONS,
+        label = "Reservas",
+        icon = Icons.AutoMirrored.Filled.List,
+        subtitle = "Confirmadas y terminadas"
+    ),
+    DrawerNavItem(
+        route = Routes.ADMIN_PROFILE,
+        label = "Mi Cuenta",
+        icon = Icons.Outlined.Person,
+        subtitle = "Perfil y configuración",
+        sectionTitle = "Tu cuenta"
+    ),
+    DrawerNavItem(
+        route = Routes.SUPPORT,
+        label = "Soporte y Ayuda",
+        icon = Icons.AutoMirrored.Filled.HelpOutline,
+        subtitle = "Asistencia y documentación"
+    ),
+    DrawerNavItem(
+        route = null,
+        label = "Cerrar Sesión",
+        icon = Icons.AutoMirrored.Filled.Logout,
+        subtitle = "Salir de tu cuenta",
+        sectionTitle = "Sesión",
+        isLogout = true
+    )
+)
+
+fun adminDrawerItemsFor(role: UserRole): List<DrawerNavItem> =
+    when (role) {
+        UserRole.SUPER_ADMIN -> superAdminDrawerItems
+        UserRole.ADMINISTRADOR -> limitedAdminDrawerItems
+        else -> emptyList()
+    }
+
+val adminDrawerItems = superAdminDrawerItems
+
+val managerDrawerItems = listOf(
+    DrawerNavItem(
+        route = Routes.MANAGER_HOTELS,
+        label = "Mi Hotel",
+        icon = Icons.Default.Hotel,
+        subtitle = "Gestionar su alojamiento",
+        sectionTitle = "Encargado del Hotel"
+    ),
+    DrawerNavItem(
+        route = Routes.MANAGER_RESERVATIONS,
+        label = "Historial de reservas",
+        icon = Icons.AutoMirrored.Filled.List,
+        subtitle = "Reservas confirmadas y terminadas de su hotel"
+    ),
+    DrawerNavItem(
+        route = Routes.MANAGER_REVIEWS,
+        label = "Comentarios",
+        icon = Icons.Default.Star,
+        subtitle = "Opiniones y calificaciones de huéspedes"
+    ),
+    DrawerNavItem(
+        route = Routes.MANAGER_PROFILE,
         label = "Mi Cuenta",
         icon = Icons.Outlined.Person,
         subtitle = "Perfil y configuración",
@@ -257,7 +414,8 @@ fun SelvaNavigationDrawer(
                                     DrawerSectionTitle(title = item.sectionTitle)
                                     Spacer(modifier = Modifier.height(6.dp))
                                 }
-                                val selected = item.route != null && currentRoute == item.route
+                                val selected = item.route != null &&
+                                    Routes.matchesRoute(currentRoute, item.route)
                                 DrawerNavRow(
                                     item = item,
                                     selected = selected,
@@ -368,19 +526,20 @@ private fun DrawerUserCard(user: User?) {
                     color = ForestGreen.copy(alpha = 0.7f)
                 )
                 Text(
-                    text = user?.nombre?.ifBlank { "Usuario" } ?: "Usuario",
+                    text = user?.nombre?.ifBlank { "Usuario" } ?: "Invitado",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = DarkText
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = user?.email?.ifBlank { "tu_email@ejemplo.com" } ?: "tu_email@ejemplo.com",
+                    text = user?.email?.ifBlank { "tu_email@ejemplo.com" }
+                        ?: "Explora hoteles sin cuenta",
                     style = MaterialTheme.typography.bodySmall,
                     color = DarkText.copy(alpha = 0.65f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                DrawerRoleBadge(role = user?.rol?.value ?: "Cliente")
+                DrawerRoleBadge(role = user?.rol?.displayLabel ?: "Invitado")
             }
         }
     }

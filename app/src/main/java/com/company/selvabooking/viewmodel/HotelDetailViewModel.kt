@@ -61,6 +61,9 @@ class HotelDetailViewModel(
         loadRooms()
         loadResenas()
         observeReviewEligibility()
+        viewModelScope.launch {
+            reservationRepository.expireFinishedReservations()
+        }
     }
 
     private fun loadHotel() {

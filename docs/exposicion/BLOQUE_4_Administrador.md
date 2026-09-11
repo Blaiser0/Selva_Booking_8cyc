@@ -238,10 +238,9 @@ flowchart LR
 
 ## 12. Documentación de diagramas
 
-Mencionar que el equipo documentó **66 casos de uso** en:
-- `docs/diagramas/casos_de_uso_estilo_uml.md`
-- `docs/diagramas/casos_de_uso_detallado_cliente.png`
-- `docs/diagramas/casos_de_uso_detallado_admin.png`
+Mencionar que el equipo documentó **70 casos de uso** en:
+- `docs/diagramas/UML.md` (documento consolidado con diagramas Mermaid)
+- `docs/diagramas/casos_de_uso_estilo_uml.puml` (PlantUML para exportar PNG)
 
 ---
 

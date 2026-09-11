@@ -14,7 +14,7 @@ data class Reservation(
     val fechaSalida: String = "",
     val huespedes: Int = 1,
     val precioTotal: Double = 0.0,
-    val estado: ReservationStatus = ReservationStatus.PENDIENTE,
+    val estado: ReservationStatus = ReservationStatus.AWAITING_PAYMENT,
     val createdAt: Long = System.currentTimeMillis()
 ) {
     fun toMap(): Map<String, Any> = mapOf(

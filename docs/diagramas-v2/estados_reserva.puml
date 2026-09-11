@@ -1,0 +1,23 @@
+@startuml estados_reserva
+!theme plain
+title Selva Booking — Estados de reserva (v2.1 — Jul 2026)
+
+[*] --> AWAITING_PAYMENT : Crear reserva\n(BookingViewModel)
+
+AWAITING_PAYMENT --> CONFIRMADA : Pago exitoso\nstock - 1
+
+CONFIRMADA --> TERMINADA : fechaSalida vencida\nexpireFinishedReservations()\nstock + 1
+
+state AWAITING_PAYMENT {
+  state "Interno\n(no visible en listas)" as INT
+}
+
+state CONFIRMADA {
+  state "Activa\nholdsStock = true" as ACT
+}
+
+state TERMINADA {
+  state "Finalizada\nstock liberado" as FIN
+}
+
+@enduml

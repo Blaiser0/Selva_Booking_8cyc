@@ -1,0 +1,81 @@
+@startuml componentes
+!theme plain
+title Selva Booking — Diagrama de componentes (MVVM)
+
+package "Dispositivo Android" {
+
+  package "Presentación (ui/)" {
+    [Actividad principal] as MA
+    [Grafo de navegación] as NG
+    [Pantallas Compose] as SCR
+    [Componentes de interfaz] as CMP
+  }
+
+  package "Modelo de vista (viewmodel/)" {
+    [Modelo vista autenticación] as AVM
+    [Modelos vista cliente] as CVM
+    [Modelo vista comentarios encargado] as MVM
+    [Modelos vista administración] as ADM
+  }
+
+  package "Repositorio (repository/)" {
+    [Repositorio autenticación] as AR
+    [Repositorio hoteles] as HR
+    [Repositorio habitaciones] as RR
+    [Repositorio reservas] as RESR
+    [Repositorio reseñas] as RSR
+    [Repositorio tarjeta guardada] as SCR2
+  }
+
+  package "Datos (data/)" {
+    [Servicio Firebase Auth] as FAS
+    [Servicio Firestore] as FS
+    [Servicio almacenamiento] as SS
+  }
+
+  package "Dominio (domain/model/)" {
+    [Entidades de dominio] as DOM
+  }
+
+  package "Utilidades (utils/)" {
+    [Alcance administrador] as ADS
+    [Utilidad validación] as VAL
+  }
+
+  database "Preferencias compartidas" as SP
+}
+
+MA --> NG
+NG --> SCR
+SCR --> CMP
+SCR --> AVM
+SCR --> CVM
+SCR --> MVM
+SCR --> ADM
+
+AVM --> AR
+AVM --> VAL
+CVM --> HR
+CVM --> RESR
+CVM --> RSR
+MVM --> RSR
+ADM --> ADS
+ADM --> AR
+ADM --> HR
+ADM --> RESR
+
+AR --> FAS
+AR --> FS
+HR --> FS
+HR --> SS
+RR --> FS
+RESR --> FS
+RSR --> FS
+SCR2 --> SP
+
+AR ..> DOM
+HR ..> DOM
+RESR ..> DOM
+RSR ..> DOM
+
+@enduml

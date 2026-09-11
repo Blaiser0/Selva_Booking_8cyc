@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,12 +48,19 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onContinueAsGuest: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(uiState.isAuthenticated) {
+        if (uiState.isAuthenticated) {
+            onLoginSuccess()
+        }
+    }
+
     if (uiState.isAuthenticated) {
-        onLoginSuccess()
+        LoadingIndicator()
         return
     }
 
@@ -118,6 +126,12 @@ fun LoginScreen(
                     onClick = viewModel::login,
                     enabled = !uiState.isLoading
                 )
+                if (onContinueAsGuest != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(onClick = onContinueAsGuest) {
+                        Text("Continuar como invitado")
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = onNavigateToRegister) {
                     Text("¿No tienes cuenta? Regístrate")
@@ -226,8 +240,14 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(uiState.isAuthenticated) {
+        if (uiState.isAuthenticated) {
+            onRegisterSuccess()
+        }
+    }
+
     if (uiState.isAuthenticated) {
-        onRegisterSuccess()
+        LoadingIndicator()
         return
     }
 
@@ -265,6 +285,14 @@ fun RegisterScreen(
                 label = "Correo electrónico",
                 keyboardType = KeyboardType.Email,
                 error = uiState.emailError
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            SelvaTextField(
+                value = uiState.telefono,
+                onValueChange = viewModel::updateTelefono,
+                label = "Teléfono",
+                keyboardType = KeyboardType.Number,
+                error = uiState.telefonoError
             )
             Spacer(modifier = Modifier.height(12.dp))
             SelvaTextField(

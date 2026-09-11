@@ -57,7 +57,8 @@ import com.company.selvabooking.viewmodel.toPaymentMethodFormState
 fun PaymentScreen(
     viewModel: PaymentViewModel,
     onBack: () -> Unit,
-    onPaymentSuccess: () -> Unit
+    onPaymentSuccess: () -> Unit,
+    onRequireAuth: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val reservation = uiState.reservation
@@ -66,6 +67,13 @@ fun PaymentScreen(
         if (uiState.paymentFlowComplete) {
             kotlinx.coroutines.delay(800)
             onPaymentSuccess()
+        }
+    }
+
+    LaunchedEffect(uiState.requiresAuth) {
+        if (uiState.requiresAuth) {
+            viewModel.clearRequiresAuth()
+            onRequireAuth()
         }
     }
 

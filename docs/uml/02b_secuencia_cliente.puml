@@ -1,0 +1,47 @@
+@startuml secuencia_cliente
+!theme plain
+title Selva Booking — Secuencia: Cliente
+
+actor Cliente as C
+participant "Pantalla inicio\n/ búsqueda" as HS
+participant "Pantalla detalle\nhotel" as HD
+participant "Pantalla reserva" as BS
+participant "Pantalla pago" as PS
+participant "Modelo vista reserva" as BVM
+participant "Modelo vista pago" as PVM
+participant "Repositorio reservas" as RES
+participant "Repositorio reseñas" as RSR
+participant "Repositorio habitaciones" as ROOM
+participant "Servicio Firestore" as FS
+
+== Explorar hoteles ==
+
+C -> HS : busca y filtra hoteles
+HS -> FS : obtenerFlujoHoteles()
+FS --> HS : lista de hoteles
+
+C -> HD : abre detalle del hotel
+HD -> FS : obtenerHabitacionesDisponibles(inventario > 0)
+
+== Reservar y pagar ==
+
+C -> BS : fechas, huéspedes, habitación
+BS -> BVM : confirmarReserva()
+BVM -> RES : crearReserva(PENDIENTE_PAGO)
+RES -> FS : reservas/{id}
+BVM --> PS : navegar a pago
+
+C -> PS : datos de tarjeta simulada
+PS -> PVM : procesarPago()
+PVM -> RES : actualizarEstado(CONFIRMADA)
+RES -> ROOM : decrementarInventario(idHabitacion)
+RES -> FS : actualizar reserva e inventario
+PS --> C : Mis reservas
+
+== Comentar hotel ==
+
+C -> HD : escribe reseña
+HD -> RSR : crearResena(idHotel, calificacion)
+RSR -> FS : resenas/{id} + recalcular calificación
+
+@enduml

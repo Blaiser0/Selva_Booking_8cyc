@@ -20,8 +20,7 @@ data class MyReservationsUiState(
     val reservations: List<Reservation> = emptyList(),
     val statusFilter: ReservationStatus? = null,
     val filteredReservations: List<Reservation> = emptyList(),
-    val error: String? = null,
-    val cancelMessage: String? = null
+    val error: String? = null
 )
 
 class MyReservationsViewModel(application: Application) : AndroidViewModel(application) {
@@ -44,9 +43,11 @@ class MyReservationsViewModel(application: Application) : AndroidViewModel(appli
                     }
                     return@collectLatest
                 }
+                reservationRepository.expireFinishedReservations()
                 reservationRepository.getUserReservationsFlow(userId).collect { reservations ->
+                    val visible = reservations.filter { it.estado.isPublic }
                     _uiState.update {
-                        it.copy(isLoading = false, reservations = reservations)
+                        it.copy(isLoading = false, reservations = visible)
                     }
                     applyFilters()
                 }
@@ -69,27 +70,7 @@ class MyReservationsViewModel(application: Application) : AndroidViewModel(appli
         _uiState.update { it.copy(filteredReservations = filtered) }
     }
 
-    fun cancelReservation(reservationId: String) {
-        viewModelScope.launch {
-            reservationRepository.cancelReservation(reservationId).fold(
-                onSuccess = {
-                    _uiState.update {
-                        it.copy(cancelMessage = "Reserva cancelada exitosamente")
-                    }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(error = e.message) }
-                }
-            )
-        }
-    }
-
-    fun canCancel(reservation: Reservation): Boolean {
-        return reservation.estado == ReservationStatus.PENDIENTE ||
-            reservation.estado == ReservationStatus.CONFIRMADA
-    }
-
     fun clearMessages() {
-        _uiState.update { it.copy(error = null, cancelMessage = null) }
+        _uiState.update { it.copy(error = null) }
     }
 }

@@ -23,8 +23,12 @@ import com.company.selvabooking.utils.Constants
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(onNavigateToLogin: () -> Unit) {
+fun SplashScreen(
+    sessionReady: Boolean,
+    onNavigate: () -> Unit
+) {
     var startAnimation by remember { mutableStateOf(false) }
+    var delayComplete by remember { mutableStateOf(false) }
 
     val logoAlpha by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
@@ -40,7 +44,13 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
     LaunchedEffect(Unit) {
         startAnimation = true
         delay(Constants.SPLASH_DELAY_MS)
-        onNavigateToLogin()
+        delayComplete = true
+    }
+
+    LaunchedEffect(sessionReady, delayComplete) {
+        if (sessionReady && delayComplete) {
+            onNavigate()
+        }
     }
 
     Box(

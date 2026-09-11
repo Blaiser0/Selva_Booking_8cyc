@@ -8,10 +8,14 @@ import com.company.selvabooking.domain.model.Hotel
 import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.ReservationStatus
 import com.company.selvabooking.domain.model.Room
+import com.company.selvabooking.domain.model.UserRole
+import com.company.selvabooking.repository.AuthRepository
 import com.company.selvabooking.repository.HotelRepository
 import com.company.selvabooking.repository.ReservationRepository
 import com.company.selvabooking.repository.RoomRepository
+import com.company.selvabooking.utils.AdminDataScope
 import com.company.selvabooking.utils.DateUtils
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +25,13 @@ import java.util.Calendar
 
 data class AdminReservationsUiState(
     val isLoading: Boolean = true,
+    val isRoleResolved: Boolean = false,
+    val isGerenteMode: Boolean = false,
+    val canManageReservations: Boolean = false,
+    val hotelName: String = "",
+    val totalCount: Int = 0,
+    val confirmadasCount: Int = 0,
+    val terminadasCount: Int = 0,
     val allReservations: List<Reservation> = emptyList(),
     val filteredReservations: List<Reservation> = emptyList(),
     val searchQuery: String = "",
@@ -38,15 +49,22 @@ data class AdminReservationsUiState(
     val fechaIngreso: String = "",
     val fechaSalida: String = "",
     val huespedes: String = "1",
-    val estado: ReservationStatus = ReservationStatus.PENDIENTE,
+    val estado: ReservationStatus = ReservationStatus.CONFIRMADA,
     val precioTotal: String = "",
     val isSaving: Boolean = false,
     val message: String? = null,
     val error: String? = null
 )
 
-class AdminReservationsViewModel(application: Application) : AndroidViewModel(application) {
+class AdminReservationsViewModel(
+    application: Application,
+    private val forceGerenteMode: Boolean = false,
+    initialCanManageReservations: Boolean = false,
+    initialRoleResolved: Boolean = false
+) : AndroidViewModel(application) {
 
+    private val authRepository: AuthRepository =
+        (application as SelvaBookingApplication).authRepository
     private val reservationRepository: ReservationRepository =
         (application as SelvaBookingApplication).reservationRepository
     private val hotelRepository: HotelRepository =
@@ -54,19 +72,79 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
     private val roomRepository: RoomRepository =
         (application as SelvaBookingApplication).roomRepository
 
-    private val _uiState = MutableStateFlow(AdminReservationsUiState())
+    private var isGerenteMode: Boolean = forceGerenteMode
+    private var isLimitedAdminMode: Boolean = false
+    private var currentAdminId: String = ""
+    private var ownerHotelIds: Set<String> = emptySet()
+    private var userResolved: Boolean = false
+    private var hotelsResolved: Boolean = false
+    private var reservationsLoaded: Boolean = false
+
+    private val _uiState = MutableStateFlow(
+        AdminReservationsUiState(
+            isGerenteMode = forceGerenteMode,
+            canManageReservations = initialCanManageReservations,
+            isRoleResolved = initialRoleResolved || forceGerenteMode
+        )
+    )
     val uiState: StateFlow<AdminReservationsUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            reservationRepository.getAllReservationsFlow().collect { reservations ->
-                _uiState.update { it.copy(isLoading = false, allReservations = reservations) }
-                applyFilters()
+            reservationRepository.expireFinishedReservations()
+        }
+        viewModelScope.launch {
+            val user = authRepository.getCurrentUserData().getOrNull()
+            isGerenteMode = forceGerenteMode || user?.rol == UserRole.GERENTE_HOTEL
+            isLimitedAdminMode = !forceGerenteMode && user?.rol == UserRole.ADMINISTRADOR
+            currentAdminId = user?.id.orEmpty()
+            val isSuperAdmin = user?.rol == UserRole.SUPER_ADMIN
+            _uiState.update {
+                it.copy(
+                    isGerenteMode = isGerenteMode,
+                    canManageReservations = isSuperAdmin,
+                    isRoleResolved = true
+                )
+            }
+            userResolved = true
+            when {
+                isGerenteMode && user != null -> {
+                    hotelRepository.getHotelsByOwnerFlow(user.id).collect { hotels ->
+                        ownerHotelIds = hotels.map { it.id }.toSet()
+                        hotelsResolved = true
+                        _uiState.update {
+                            it.copy(hotelName = hotels.firstOrNull()?.nombre.orEmpty())
+                        }
+                        applyFilters()
+                    }
+                }
+                isLimitedAdminMode -> {
+                    combine(
+                        authRepository.getGerentesHotelFlow(),
+                        hotelRepository.getHotelsFlow()
+                    ) { gerentes, hotels ->
+                        AdminDataScope.hotelsForAdmin(currentAdminId, gerentes, hotels)
+                    }.collect { hotels ->
+                        ownerHotelIds = hotels.map { it.id }.toSet()
+                        hotelsResolved = true
+                        _uiState.update { it.copy(hotels = hotels) }
+                        applyFilters()
+                    }
+                }
+                else -> {
+                    hotelsResolved = true
+                    applyFilters()
+                    hotelRepository.getHotelsFlow().collect { hotels ->
+                        _uiState.update { it.copy(hotels = hotels) }
+                    }
+                }
             }
         }
         viewModelScope.launch {
-            hotelRepository.getHotelsFlow().collect { hotels ->
-                _uiState.update { it.copy(hotels = hotels) }
+            reservationRepository.getAllReservationsFlow().collect { reservations ->
+                _uiState.update { it.copy(allReservations = reservations) }
+                reservationsLoaded = true
+                applyFilters()
             }
         }
     }
@@ -99,7 +177,7 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
                 fechaIngreso = "",
                 fechaSalida = "",
                 huespedes = "1",
-                estado = ReservationStatus.PENDIENTE,
+                estado = ReservationStatus.CONFIRMADA,
                 precioTotal = "",
                 error = null
             )
@@ -119,7 +197,11 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
                 fechaIngreso = reservation.fechaIngreso,
                 fechaSalida = reservation.fechaSalida,
                 huespedes = reservation.huespedes.toString(),
-                estado = reservation.estado,
+                estado = if (reservation.estado.isPublic) {
+                    reservation.estado
+                } else {
+                    ReservationStatus.CONFIRMADA
+                },
                 precioTotal = reservation.precioTotal.toString(),
                 error = null,
                 selectedReservation = null
@@ -221,6 +303,10 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
             _uiState.update { it.copy(error = "Hotel o habitación no encontrados") }
             return
         }
+        if (state.editingReservationId == null && state.estado.holdsStock() && !room.isReservable) {
+            _uiState.update { it.copy(error = "No hay habitaciones disponibles de este tipo") }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
@@ -245,7 +331,16 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
             )
 
             val result = if (state.editingReservationId != null) {
-                reservationRepository.updateReservation(reservation)
+                val old = state.allReservations.find { it.id == state.editingReservationId }
+                if (old != null && old.estado != reservation.estado) {
+                    reservationRepository.updateReservationStatus(reservation.id, reservation.estado)
+                        .fold(
+                            onSuccess = { reservationRepository.updateReservation(reservation) },
+                            onFailure = { Result.failure(it) }
+                        )
+                } else {
+                    reservationRepository.updateReservation(reservation)
+                }
             } else {
                 reservationRepository.createReservation(reservation).map { }
             }
@@ -291,11 +386,20 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
     }
 
     private fun applyFilters() {
+        if (!userResolved || !hotelsResolved || !reservationsLoaded) return
         val state = _uiState.value
-        var filtered = state.allReservations
+        var base = state.allReservations.filter { it.estado.isPublic }
+        if (isGerenteMode || isLimitedAdminMode) {
+            base = base.filter { it.hotelId in ownerHotelIds }
+        }
+        val confirmadasCount = base.count { it.estado == ReservationStatus.CONFIRMADA }
+        val terminadasCount = base.count { it.estado == ReservationStatus.TERMINADA }
+
+        var filtered = base
         if (state.searchQuery.isNotBlank()) {
             filtered = filtered.filter {
                 it.hotelNombre.contains(state.searchQuery, ignoreCase = true) ||
+                    it.roomNombre.contains(state.searchQuery, ignoreCase = true) ||
                     it.userNombre.contains(state.searchQuery, ignoreCase = true) ||
                     it.userEmail.contains(state.searchQuery, ignoreCase = true)
             }
@@ -303,12 +407,18 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
         if (state.statusFilter != null) {
             filtered = filtered.filter { it.estado == state.statusFilter }
         }
-        _uiState.update { it.copy(filteredReservations = filtered) }
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                filteredReservations = filtered,
+                totalCount = base.size,
+                confirmadasCount = confirmadasCount,
+                terminadasCount = terminadasCount
+            )
+        }
     }
 
-    fun confirmReservation(id: String) = updateStatus(id, ReservationStatus.CONFIRMADA)
-    fun cancelReservation(id: String) = updateStatus(id, ReservationStatus.CANCELADA)
-    fun completeReservation(id: String) = updateStatus(id, ReservationStatus.COMPLETADA)
+    fun terminateReservation(id: String) = updateStatus(id, ReservationStatus.TERMINADA)
 
     private fun updateStatus(id: String, status: ReservationStatus) {
         viewModelScope.launch {
@@ -324,4 +434,15 @@ class AdminReservationsViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun clearMessages() = _uiState.update { it.copy(message = null, error = null) }
+
+    fun onScreenVisible() {
+        _uiState.update {
+            it.copy(
+                showForm = false,
+                selectedReservation = null,
+                editingReservationId = null,
+                error = null
+            )
+        }
+    }
 }

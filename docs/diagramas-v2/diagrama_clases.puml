@@ -1,0 +1,130 @@
+@startuml diagrama_clases
+!theme plain
+skinparam classAttributeIconSize 0
+title Selva Booking — Diagrama de clases (dominio v2.1 — Jul 2026)
+
+enum UserRole {
+  CLIENTE
+  SUPER_ADMIN
+  ADMINISTRADOR
+  GERENTE_HOTEL
+  --
+  +hasAdminPanelAccess()
+  +hasFullAdminPowers()
+}
+
+enum ReservationStatus {
+  AWAITING_PAYMENT
+  CONFIRMADA
+  TERMINADA
+  --
+  +isPublic() : Boolean
+  +holdsStock() : Boolean
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum AuditEntityType {
+  HOTEL
+  ROOM
+}
+
+class User {
+  +id : String
+  +nombre : String
+  +email : String
+  +telefono : String
+  +fotoUrl : String
+  +rol : UserRole
+  +puedeAlternarRol : Boolean
+  +perfilCompleto : Boolean
+  +rolAlternativo : String
+  +creadoPorAdminId : String
+  +isAdministratorAccount() : Boolean
+}
+
+class Hotel {
+  +id : String
+  +nombre : String
+  +ciudad : String
+  +categoria : String
+  +precioMinimo : Double
+  +calificacion : Double
+  +calificacionBase : Double
+  +propietarioId : String
+  +destacado : Boolean
+  +oferta : Boolean
+}
+
+class Room {
+  +id : String
+  +hotelId : String
+  +nombre : String
+  +precio : Double
+  +capacidad : Int
+  +cantidad : Int
+  +stock : Int
+  +disponible : Boolean
+  +isReservable() : Boolean
+}
+
+class Reservation {
+  +id : String
+  +userId : String
+  +hotelId : String
+  +roomId : String
+  +fechaIngreso : String
+  +fechaSalida : String
+  +huespedes : Int
+  +precioTotal : Double
+  +estado : ReservationStatus
+}
+
+class Resena {
+  +id : String
+  +hotelId : String
+  +userId : String
+  +reservationId : String
+  +userNombre : String
+  +calificacion : Int
+  +comentario : String
+  +createdAt : Long
+}
+
+class AuditLog {
+  +id : String
+  +timestamp : Long
+  +actorUserId : String
+  +action : AuditAction
+  +entityType : AuditEntityType
+  +entityId : String
+  +reverted : Boolean
+  +canRevert() : Boolean
+}
+
+class AdminDataScope <<utility>> {
+  +gerentesCreatedBy()
+  +hotelsForAdmin()
+  +reservationsForAdmin()
+  +hotelsWithoutAdministrator()
+}
+
+User --> UserRole
+User "1" o-- "0..*" User : creadoPorAdminId
+Reservation --> ReservationStatus
+AuditLog --> AuditAction
+AuditLog --> AuditEntityType
+Hotel "1" *-- "0..*" Room : contiene
+Hotel "1" o-- "0..*" Reservation
+Hotel "1" o-- "0..*" Resena
+User "1" o-- "0..1" Hotel : propietario
+User "1" o-- "0..*" Reservation
+User "1" o-- "0..*" Resena
+User "1" o-- "0..*" AuditLog : actor
+Room "1" o-- "0..*" Reservation
+
+@enduml

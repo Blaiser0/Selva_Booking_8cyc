@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selva Booking — Estructura de carpetas</title>
+  <style>
+    :root {
+      --forest: #1b5e3b;
+      --forest-dark: #0f3d27;
+      --forest-light: #2d8a5a;
+      --tropical: #3cb371;
+      --cream: #f5f0e6;
+      --cream-dark: #e8e0d0;
+      --orange: #e67e22;
+      --text: #1a1a1a;
+      --text-muted: #5a5a5a;
+      --card: #ffffff;
+      --shadow: 0 4px 24px rgba(15, 61, 39, 0.1);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, var(--cream) 0%, #e8f5ee 50%, var(--cream) 100%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%);
+      color: #fff;
+      padding: 2.5rem 1.5rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    header p {
+      opacity: 0.92;
+      max-width: 640px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    .intro-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      border-left: 5px solid var(--forest);
+    }
+
+    .intro-card h2 {
+      color: var(--forest);
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .flow span {
+      background: var(--cream);
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      color: var(--forest-dark);
+    }
+
+    .flow .arrow { color: var(--orange); font-weight: bold; }
+
+    section { margin-bottom: 2rem; }
+
+    section > h2 {
+      color: var(--forest);
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--cream-dark);
+    }
+
+    .folder-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media (min-width: 700px) {
+      .folder-grid.two-col { grid-template-columns: 1fr 1fr; }
+    }
+
+    .folder-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .folder-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(15, 61, 39, 0.14);
+    }
+
+    .folder-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 1.1rem 1.25rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .folder-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .icon-root   { background: #dbeafe; }
+    .icon-app    { background: #dcfce7; }
+    .icon-domain { background: #fef3c7; }
+    .icon-data   { background: #e0e7ff; }
+    .icon-repo   { background: #fce7f3; }
+    .icon-vm     { background: #d1fae5; }
+    .icon-nav    { background: #ede9fe; }
+    .icon-ui     { background: #cffafe; }
+    .icon-util   { background: #f3f4f6; }
+    .icon-res    { background: #ffedd5; }
+    .icon-docs   { background: #f5f5f4; }
+
+    .folder-title {
+      flex: 1;
+    }
+
+    .folder-title code {
+      display: block;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.95rem;
+      color: var(--forest-dark);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .folder-title .label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .chevron {
+      color: var(--forest);
+      transition: transform 0.2s;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    .folder-card.open .chevron { transform: rotate(90deg); }
+
+    .folder-body {
+      display: none;
+      padding: 0 1.25rem 1.25rem;
+      border-top: 1px solid var(--cream-dark);
+    }
+
+    .folder-card.open .folder-body { display: block; }
+
+    .concept {
+      background: linear-gradient(90deg, rgba(27,94,59,0.08), transparent);
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+
+    .concept strong { color: var(--forest); }
+
+    .file-list {
+      list-style: none;
+      font-size: 0.88rem;
+    }
+
+    .file-list li {
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed var(--cream-dark);
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    .file-list li:last-child { border-bottom: none; }
+
+    .file-list code {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      color: var(--forest-dark);
+      white-space: nowrap;
+      font-size: 0.82rem;
+    }
+
+    .file-list .desc { color: var(--text-muted); }
+
+    .tree {
+      background: var(--forest-dark);
+      color: #c8f0d8;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius);
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.78rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+      margin-top: 1.5rem;
+    }
+
+    .tree .dir { color: #7dd3a8; font-weight: 600; }
+    .tree .file { color: #e8f5ee; }
+    .tree .comment { color: #8fb89a; }
+
+    .role-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .role-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      box-shadow: var(--shadow);
+      border-top: 4px solid var(--forest);
+    }
+
+    .role-card h3 { color: var(--forest); font-size: 1rem; margin-bottom: 0.4rem; }
+    .role-card p { font-size: 0.88rem; color: var(--text-muted); }
+    .role-card ul { margin-top: 0.5rem; padding-left: 1.1rem; font-size: 0.85rem; }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .expand-all {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .expand-all button {
+      background: var(--forest);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .expand-all button.secondary {
+      background: var(--cream-dark);
+      color: var(--forest-dark);
+    }
+
+    .expand-all button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Selva Booking — Estructura de carpetas</h1>
+  <p>Mapa visual del proyecto Android. Cada carpeta tiene un propósito claro dentro de la arquitectura MVVM + Firebase.</p>
+  <div class="badge-row">
+    <span class="badge">Kotlin</span>
+    <span class="badge">Jetpack Compose</span>
+    <span class="badge">MVVM</span>
+    <span class="badge">Firebase</span>
+    <span class="badge">Madre de Dios</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="intro-card">
+    <h2>¿Cómo se organiza el código?</h2>
+    <p>La app separa <strong>lo que se ve</strong>, <strong>la lógica</strong>, <strong>el acceso a datos</strong> y <strong>las reglas del negocio</strong>. Así cada parte es fácil de encontrar y modificar sin romper el resto.</p>
+    <div class="flow">
+      <span>UI (Compose)</span>
+      <span class="arrow">→</span>
+      <span>ViewModel</span>
+      <span class="arrow">→</span>
+      <span>Repository</span>
+      <span class="arrow">→</span>
+      <span>Firebase / Local</span>
+    </div>
+  </div>
+
+  <div class="expand-all">
+    <button type="button" onclick="expandAll()">Expandir todo</button>
+    <button type="button" class="secondary" onclick="collapseAll()">Contraer todo</button>
+  </div>
+
+  <!-- RAÍZ -->
+  <section>
+    <h2>📁 Raíz del proyecto</h2>
+    <div class="folder-grid">
+
+      <div class="folder-card open" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-root">🏠</div>
+          <div class="folder-title">
+            <code>SelvaBooking/</code>
+            <span class="label">Proyecto completo</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Contenedor de todo — código, configuración Gradle, documentación y herramientas. Es lo que clonas del repositorio.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-app">📱</div>
+          <div class="folder-title">
+            <code>app/</code>
+            <span class="label">Módulo de la aplicación</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> El corazón del proyecto. Aquí vive todo el código Kotlin, recursos visuales, manifest y configuración Firebase. Al compilar, genera el APK.</div>
+          <ul class="file-list">
+            <li><code>build.gradle.kts</code> <span class="desc">— Librerías: Compose, Firebase, Navigation, Coil</span></li>
+            <li><code>google-services.json</code> <span class="desc">— Credenciales del proyecto Firebase</span></li>
+            <li><code>src/main/</code> <span class="desc">— Código y recursos que van al APK</span></li>
+            <li><code>build/outputs/apk/</code> <span class="desc">— APK generado (no se edita a mano)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-docs">📚</div>
+          <div class="folder-title">
+            <code>docs/</code>
+            <span class="label">Documentación</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Material de referencia para entender y presentar el proyecto — arquitectura, casos de uso y diagramas UML.</div>
+          <ul class="file-list">
+            <li><code>exposicion/</code> <span class="desc">— Guiones por bloques (arquitectura, auth, cliente, admin)</span></li>
+            <li><code>diagramas/</code> <span class="desc">— UML y casos de uso (.md y .puml)</span></li>
+            <li><code>estructura-carpetas.html</code> <span class="desc">— Este archivo</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-root">⚙️</div>
+          <div class="folder-title">
+            <code>gradle/ · gradlew · *.gradle.kts</code>
+            <span class="label">Sistema de compilación</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Configura cómo se construye la app. Gradle descarga dependencias, compila Kotlin y empaqueta el APK. No contiene lógica de negocio.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-root">🎨</div>
+          <div class="folder-title">
+            <code>figma-export/ · tools/</code>
+            <span class="label">Diseño y scripts</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Recursos auxiliares. SVGs de pantallas exportados desde Figma y scripts Python para generar assets de diseño.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CÓDIGO KOTLIN -->
+  <section>
+    <h2>🧩 Código fuente — <code>app/src/main/java/com/company/selvabooking/</code></h2>
+    <div class="folder-grid">
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-app">🚀</div>
+          <div class="folder-title">
+            <code>MainActivity.kt · SelvaBookingApplication.kt</code>
+            <span class="label">Arranque de la app</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Punto de entrada. <code>MainActivity</code> muestra la primera pantalla y aplica el tema. <code>Application</code> crea los repositorios una sola vez para toda la app (como un "contenedor global").</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-domain">📦</div>
+          <div class="folder-title">
+            <code>domain/model/</code>
+            <span class="label">Entidades del negocio</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Define <em>qué cosas existen</em> en Selva Booking: usuarios, hoteles, habitaciones, reservas. Son clases puras de datos, sin UI ni Firebase. Representan el "lenguaje" del dominio.</div>
+          <ul class="file-list">
+            <li><code>User.kt · UserRole.kt</code> <span class="desc">— Cliente, admin, gerente</span></li>
+            <li><code>Hotel.kt · Room.kt</code> <span class="desc">— Alojamiento y habitaciones con stock</span></li>
+            <li><code>Reservation.kt · ReservationStatus.kt</code> <span class="desc">— Reservas y estados (confirmada, terminada…)</span></li>
+            <li><code>Resena.kt</code> <span class="desc">— Opiniones de clientes</span></li>
+            <li><code>SavedPaymentCard.kt</code> <span class="desc">— Tarjeta guardada localmente</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-data">☁️</div>
+          <div class="folder-title">
+            <code>data/</code>
+            <span class="label">Conexión con servicios externos</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Capa más baja de datos. Habla directamente con Firebase y contiene datos de ejemplo. No decide reglas de negocio complejas — solo lee y escribe.</div>
+          <ul class="file-list">
+            <li><code>firebase/FirebaseAuthService.kt</code> <span class="desc">— Login, registro, sesión</span></li>
+            <li><code>firebase/FirestoreService.kt</code> <span class="desc">— Base de datos en tiempo real</span></li>
+            <li><code>firebase/StorageService.kt</code> <span class="desc">— Imágenes en la nube</span></li>
+            <li><code>SampleData.kt</code> <span class="desc">— Datos iniciales de prueba</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-repo">🔄</div>
+          <div class="folder-title">
+            <code>repository/</code>
+            <span class="label">Puente entre lógica y datos</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> El "intermediario inteligente". Los ViewModels no llaman a Firebase directamente — pasan por aquí. Aquí viven las reglas: bajar stock al confirmar reserva, expirar reservas terminadas, eliminar hotel con sus habitaciones, etc.</div>
+          <ul class="file-list">
+            <li><code>AuthRepository.kt</code> <span class="desc">— Usuarios, sesión, gerentes, admins</span></li>
+            <li><code>HotelRepository.kt</code> <span class="desc">— CRUD de hoteles</span></li>
+            <li><code>RoomRepository.kt</code> <span class="desc">— Habitaciones y control de stock</span></li>
+            <li><code>ReservationRepository.kt</code> <span class="desc">— Reservas y cambios de estado</span></li>
+            <li><code>ResenaRepository.kt</code> <span class="desc">— Reseñas y calificaciones</span></li>
+            <li><code>SavedCardRepository.kt</code> <span class="desc">— Tarjetas en el teléfono (local)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-vm">🧠</div>
+          <div class="folder-title">
+            <code>viewmodel/</code>
+            <span class="label">Cerebro de cada pantalla (MVVM)</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Prepara todo lo que una pantalla necesita mostrar y reacciona a acciones del usuario (buscar, reservar, guardar hotel…). Expone un <code>UiState</code> que la UI observa. No dibuja nada — solo piensa.</div>
+          <ul class="file-list">
+            <li><code>AuthViewModel.kt</code> <span class="desc">— Login y sesión global</span></li>
+            <li><code>HomeViewModel · SearchViewModel · HotelDetailViewModel</code> <span class="desc">— Flujo cliente</span></li>
+            <li><code>BookingViewModel · PaymentViewModel · MyReservationsViewModel</code> <span class="desc">— Reserva y pago</span></li>
+            <li><code>Admin*ViewModel.kt</code> <span class="desc">— Panel admin y gerente</span></li>
+            <li><code>ProfileViewModel.kt</code> <span class="desc">— Perfil compartido</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-nav">🗺️</div>
+          <div class="folder-title">
+            <code>navigation/</code>
+            <span class="label">Rutas y flujo entre pantallas</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> El "GPS" de la app. Define nombres de rutas, conecta pantallas en un grafo y decide a dónde ir según el rol del usuario tras iniciar sesión.</div>
+          <ul class="file-list">
+            <li><code>Routes.kt</code> <span class="desc">— Constantes: admin_hotels, client_home…</span></li>
+            <li><code>NavGraph.kt</code> <span class="desc">— Mapa completo de pantallas + drawer</span></li>
+            <li><code>NavigationDestinations.kt</code> <span class="desc">— Destino inicial por rol</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- UI -->
+  <section>
+    <h2>🖼️ Interfaz — <code>ui/</code></h2>
+    <div class="folder-grid two-col">
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">🔐</div>
+          <div class="folder-title">
+            <code>ui/auth/</code>
+            <span class="label">Acceso al sistema</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Puerta de entrada. Login, registro, recuperar contraseña y completar perfil del gerente la primera vez.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">🏨</div>
+          <div class="folder-title">
+            <code>ui/client/</code>
+            <span class="label">Experiencia del turista</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Todo lo que hace un cliente: explorar hoteles, buscar, ver detalle, reservar, pagar y consultar sus viajes.</div>
+          <ul class="file-list">
+            <li><code>HomeScreen.kt</code> <span class="desc">— Inicio con destacados</span></li>
+            <li><code>SearchScreen.kt</code> <span class="desc">— Búsqueda y filtros</span></li>
+            <li><code>HotelDetailScreen.kt</code> <span class="desc">— Detalle del hotel</span></li>
+            <li><code>BookingScreen.kt · PaymentScreen.kt</code> <span class="desc">— Reserva y pago</span></li>
+            <li><code>MyReservationsScreen.kt</code> <span class="desc">— Mis reservas</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">👔</div>
+          <div class="folder-title">
+            <code>ui/admin/</code>
+            <span class="label">Panel administrador y gerente</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Pantallas de gestión. El admin supervisa; el gerente opera su hotel. Varias pantallas se reutilizan en modo distinto según el rol.</div>
+          <ul class="file-list">
+            <li><code>AdminDashboardScreen.kt</code> <span class="desc">— Métricas e ingresos</span></li>
+            <li><code>AdminHotelsScreen.kt</code> <span class="desc">— Lista de hoteles</span></li>
+            <li><code>AdminRoomsScreen.kt</code> <span class="desc">— Habitaciones del hotel</span></li>
+            <li><code>AdminReservationsScreen.kt</code> <span class="desc">— Historial de reservas</span></li>
+            <li><code>AdminGerentesScreen.kt · AdminAdministradoresScreen.kt</code> <span class="desc">— Gestión de cuentas</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">🧩</div>
+          <div class="folder-title">
+            <code>ui/components/</code>
+            <span class="label">Piezas reutilizables</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> "Lego" de la interfaz. Botones, campos de texto, tarjetas de hotel y filtros que se usan en muchas pantallas para mantener un diseño consistente.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">🎨</div>
+          <div class="folder-title">
+            <code>ui/theme/</code>
+            <span class="label">Identidad visual</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Colores selva, tipografías y tema Material 3. Define cómo se ve toda la app de forma uniforme.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-ui">📋</div>
+          <div class="folder-title">
+            <code>ui/profile/ · splash/ · support/ · navigation/</code>
+            <span class="label">Pantallas compartidas</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Perfil de usuario, pantalla de carga inicial, ayuda y menú lateral — comunes a varios roles.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- UTILS Y RES -->
+  <section>
+    <h2>🔧 Utilidades y recursos</h2>
+    <div class="folder-grid two-col">
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-util">🛠️</div>
+          <div class="folder-title">
+            <code>utils/</code>
+            <span class="label">Herramientas compartidas</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Funciones auxiliares usadas en muchos lugares: formatear fechas y soles, validar emails, opciones de formularios de hotel, mensajes de error traducidos.</div>
+        </div>
+      </div>
+
+      <div class="folder-card" onclick="toggle(this)">
+        <div class="folder-header">
+          <div class="folder-icon icon-res">🖼️</div>
+          <div class="folder-title">
+            <code>res/</code>
+            <span class="label">Recursos Android (no Compose)</span>
+          </div>
+          <span class="chevron">▶</span>
+        </div>
+        <div class="folder-body">
+          <div class="concept"><strong>Concepto:</strong> Archivos que Android necesita fuera del código Kotlin: textos por defecto, icono de la app, temas XML base y reglas del sistema.</div>
+          <ul class="file-list">
+            <li><code>values/strings.xml</code> <span class="desc">— Cadenas de texto</span></li>
+            <li><code>drawable/ · mipmap/</code> <span class="desc">— Iconos e imágenes</span></li>
+            <li><code>AndroidManifest.xml</code> <span class="desc">— Configuración de la app</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ROLES -->
+  <section>
+    <h2>👥 ¿Qué carpeta usa cada rol?</h2>
+    <div class="role-cards">
+      <div class="role-card">
+        <h3>Cliente</h3>
+        <p>Reserva hoteles en la selva.</p>
+        <ul>
+          <li><code>ui/client/</code></li>
+          <li><code>viewmodel/Home*, Search*, Booking*…</code></li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h3>Gerente de hotel</h3>
+        <p>Gestiona su alojamiento y ve reservas.</p>
+        <ul>
+          <li><code>ui/admin/</code> (modo gerente)</li>
+          <li><code>MANAGER_*</code> rutas</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h3>Administrador</h3>
+        <p>Supervisa la plataforma y cuentas.</p>
+        <ul>
+          <li><code>ui/admin/</code> (modo consulta)</li>
+          <li><code>ADMIN_*</code> rutas</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ÁRBOL -->
+  <section>
+    <h2>🌳 Árbol completo (referencia rápida)</h2>
+    <div class="tree"><span class="dir">SelvaBooking/</span>
+├── <span class="dir">app/</span>                          <span class="comment">← Aplicación Android</span>
+│   ├── build.gradle.kts
+│   ├── google-services.json
+│   └── <span class="dir">src/main/</span>
+│       ├── AndroidManifest.xml
+│       ├── <span class="dir">java/.../selvabooking/</span>
+│       │   ├── MainActivity.kt
+│       │   ├── SelvaBookingApplication.kt
+│       │   ├── <span class="dir">domain/model/</span>         <span class="comment">← Entidades</span>
+│       │   ├── <span class="dir">data/</span>                   <span class="comment">← Firebase + seed</span>
+│       │   ├── <span class="dir">repository/</span>             <span class="comment">← Reglas + datos</span>
+│       │   ├── <span class="dir">viewmodel/</span>              <span class="comment">← Lógica pantallas</span>
+│       │   ├── <span class="dir">navigation/</span>             <span class="comment">← Rutas</span>
+│       │   ├── <span class="dir">ui/</span>                     <span class="comment">← Pantallas Compose</span>
+│       │   │   ├── auth/ client/ admin/
+│       │   │   ├── components/ theme/
+│       │   │   └── profile/ splash/ support/
+│       │   └── <span class="dir">utils/</span>                  <span class="comment">← Helpers</span>
+│       └── <span class="dir">res/</span>                      <span class="comment">← Recursos XML</span>
+├── <span class="dir">docs/</span>                           <span class="comment">← Documentación</span>
+├── <span class="dir">figma-export/</span>
+├── <span class="dir">tools/</span>
+├── build.gradle.kts
+└── README.md</div>
+  </section>
+
+</main>
+
+<footer>
+  Selva Booking · Estructura de carpetas · Generado para el proyecto Android MVVM + Firebase
+</footer>
+
+<script>
+  function toggle(card) {
+    card.classList.toggle('open');
+  }
+  function expandAll() {
+    document.querySelectorAll('.folder-card').forEach(c => c.classList.add('open'));
+  }
+  function collapseAll() {
+    document.querySelectorAll('.folder-card').forEach(c => c.classList.remove('open'));
+  }
+</script>
+
+</body>
+</html>

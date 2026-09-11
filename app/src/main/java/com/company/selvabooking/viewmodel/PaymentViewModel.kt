@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.company.selvabooking.SelvaBookingApplication
 import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.SavedPaymentCard
+import com.company.selvabooking.repository.AuthRepository
 import com.company.selvabooking.repository.ReservationRepository
 import com.company.selvabooking.repository.SavedCardRepository
 import com.company.selvabooking.utils.MadreDeDiosDistricts
@@ -44,7 +45,8 @@ data class PaymentUiState(
     val cardholderNameError: String? = null,
     val addressLine1Error: String? = null,
     val districtError: String? = null,
-    val postalCodeError: String? = null
+    val postalCodeError: String? = null,
+    val requiresAuth: Boolean = false
 )
 
 class PaymentViewModel(
@@ -57,6 +59,9 @@ class PaymentViewModel(
 
     private val savedCardRepository: SavedCardRepository =
         (application as SelvaBookingApplication).savedCardRepository
+
+    private val authRepository: AuthRepository =
+        (application as SelvaBookingApplication).authRepository
 
     private val _uiState = MutableStateFlow(PaymentUiState())
     val uiState: StateFlow<PaymentUiState> = _uiState.asStateFlow()
@@ -210,7 +215,15 @@ class PaymentViewModel(
         _uiState.update { it.copy(postalCode = value, postalCodeError = null) }
     }
 
+    fun clearRequiresAuth() {
+        _uiState.update { it.copy(requiresAuth = false) }
+    }
+
     fun confirmPayment() {
+        if (!authRepository.isLoggedIn) {
+            _uiState.update { it.copy(requiresAuth = true) }
+            return
+        }
         val normalizedState = normalizeBillingState(_uiState.value)
         if (normalizedState != _uiState.value) {
             _uiState.value = normalizedState
@@ -224,6 +237,7 @@ class PaymentViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
+            reservationRepository.expireFinishedReservations()
             kotlinx.coroutines.delay(1500)
             reservationRepository.confirmReservation(reservationId).fold(
                 onSuccess = {

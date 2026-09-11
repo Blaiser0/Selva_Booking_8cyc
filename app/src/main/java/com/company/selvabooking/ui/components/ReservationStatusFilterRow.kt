@@ -30,7 +30,7 @@ fun ReservationStatusFilterRow(
                 label = { Text("Todas") }
             )
         }
-        items(ReservationStatus.entries.toList()) { status ->
+        items(ReservationStatus.publicStatuses) { status ->
             FilterChip(
                 selected = selectedStatus == status,
                 onClick = { onStatusSelected(status) },

@@ -146,7 +146,8 @@ Storage: carpetas `hoteles/`, `habitaciones/` y `perfiles/`.
 | [docs/exposicion/BLOQUE_2_Autenticacion.md](docs/exposicion/BLOQUE_2_Autenticacion.md) | Auth, perfil y roles |
 | [docs/exposicion/BLOQUE_3_Cliente.md](docs/exposicion/BLOQUE_3_Cliente.md) | Flujo cliente y pago |
 | [docs/exposicion/BLOQUE_4_Administrador.md](docs/exposicion/BLOQUE_4_Administrador.md) | Panel admin y Firebase |
-| [docs/diagramas/](docs/diagramas/) | Diagramas de casos de uso (PlantUML / Mermaid) |
+| [docs/diagramas/UML.md](docs/diagramas/UML.md) | **Diagramas UML consolidados** (Mermaid, 70 casos de uso) |
+| [docs/diagramas/](docs/diagramas/) | PlantUML fuente y diagramas por módulo |
 
 ---
 

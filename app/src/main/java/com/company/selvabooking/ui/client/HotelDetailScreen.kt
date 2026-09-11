@@ -73,7 +73,7 @@ fun HotelDetailScreen(
     val hotel = uiState.hotel
     val listState = rememberLazyListState()
     val minRoomPrice = uiState.rooms.minOfOrNull { it.precio } ?: hotel?.precioMinimo ?: 0.0
-    val firstRoomId = uiState.rooms.firstOrNull()?.id
+    val firstReservableRoom = uiState.rooms.firstOrNull { it.isReservable }
 
     LaunchedEffect(uiState.reviewMessage) {
         if (uiState.reviewMessage != null) {
@@ -122,11 +122,15 @@ fun HotelDetailScreen(
                 StickyPriceBar(
                     label = "Desde",
                     price = DateUtils.formatCurrency(minRoomPrice),
-                    buttonText = if (uiState.rooms.isEmpty()) "Sin habitaciones" else "Ver ofertas",
-                    onButtonClick = {
-                        firstRoomId?.let { onBook(hotel.id, it) }
+                    buttonText = when {
+                        uiState.rooms.isEmpty() -> "Sin habitaciones"
+                        firstReservableRoom == null -> "Agotado"
+                        else -> "Ver ofertas"
                     },
-                    enabled = firstRoomId != null
+                    onButtonClick = {
+                        firstReservableRoom?.let { onBook(hotel.id, it.id) }
+                    },
+                    enabled = firstReservableRoom != null
                 )
             }
         }

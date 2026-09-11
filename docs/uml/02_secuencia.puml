@@ -1,0 +1,94 @@
+@startuml secuencia_todos
+!theme plain
+title Selva Booking — Secuencia: Invitado
+
+actor Invitado as I
+participant "Pantalla login/registro" as UI
+participant "Modelo vista autenticación" as AVM
+participant "Repositorio autenticación" as AR
+participant "Servicio Firebase Auth" as FAS
+participant "Servicio Firestore" as FS
+database "Firebase" as FB
+
+I -> UI : registrarse / iniciar sesión / recuperar contraseña
+UI -> AVM : registrar() / iniciarSesion() / enviarRecuperacion()
+AVM -> AR : operación de autenticación
+AR -> FAS : crearCuenta / iniciarSesion / enviarCorreo
+FAS -> FB : Autenticación Firebase
+AR -> FS : crearUsuario / obtenerUsuario
+FS -> FB : usuarios/{id}
+FB --> UI : redirigir según rol
+
+newpage
+title Selva Booking — Secuencia: Cliente
+
+actor Cliente as C
+participant "Pantallas exploración" as HS
+participant "Pantalla reserva / pago" as BS
+participant "Repositorio reservas" as RES
+participant "Repositorio reseñas" as RSR
+participant "Servicio Firestore" as FS
+
+C -> HS : explorar hoteles
+HS -> FS : obtenerFlujoHoteles()
+C -> BS : reservar y pagar
+BS -> RES : crearReserva(PENDIENTE_PAGO) → CONFIRMADA
+C -> HS : comentar hotel
+HS -> RSR : crearResena()
+
+newpage
+title Selva Booking — Secuencia: Encargado de hotel
+
+actor "Encargado\nde hotel" as E
+participant "Pantalla mi hotel" as MH
+participant "Pantalla habitaciones" as RS
+participant "Pantalla comentarios" as MR
+participant "Repositorio hoteles" as HR
+participant "Repositorio auditoría" as AUD
+participant "Repositorio reseñas" as RSR
+
+E -> MH : gestionar hotel (máx. 1)
+MH -> HR : crear / actualizar hotel
+MH -> AUD : registrar auditoría
+E -> RS : habitaciones e inventario
+E -> MR : ver comentarios
+MR -> RSR : reseñas en tiempo real
+
+newpage
+title Selva Booking — Secuencia: Administrador (limitado)
+
+actor Administrador as A
+participant "Pantalla panel" as DS
+participant "Pantalla hoteles" as HS
+participant "Pantalla encargados" as GS
+participant "Alcance administrador" as ADS
+participant "Repositorio autenticación" as AR
+participant "Servicio Firestore" as FS
+
+A -> DS : panel de supervisión
+DS -> ADS : hoteles y reservas de su red
+A -> HS : consultar hoteles (lectura)
+A -> GS : crear encargado
+GS -> AR : crearEncargado(creadoPorAdminId)
+AR -> FS : usuarios/{id}
+
+newpage
+title Selva Booking — Secuencia: SuperAdmin
+
+actor SuperAdmin as SA
+participant "Pantalla hoteles" as HS
+participant "Pantalla comentarios" as HR
+participant "Pantalla auditoría" as AS
+participant "Pantalla administradores" as ADS
+participant "Repositorio hoteles" as HRr
+participant "Repositorio auditoría" as AUD
+participant "Repositorio autenticación" as AR
+
+SA -> HS : gestionar hoteles globales
+HS -> HRr : crear / actualizar / eliminar
+SA -> HR : comentarios por hotel
+SA -> ADS : crear administrador
+SA -> AS : revertir auditoría
+AS -> AUD : revertirCambio(idRegistro)
+
+@enduml

@@ -41,7 +41,8 @@ fun SelvaTextField(
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
-    maxLines: Int = 1
+    maxLines: Int = 1,
+    enabled: Boolean = true
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -52,6 +53,7 @@ fun SelvaTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .bringIntoViewRequester(bringIntoViewRequester)

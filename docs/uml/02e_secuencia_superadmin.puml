@@ -1,0 +1,55 @@
+@startuml secuencia_superadmin
+!theme plain
+title Selva Booking — Secuencia: SuperAdmin
+
+actor SuperAdmin as SA
+participant "Pantalla panel global" as DS
+participant "Pantalla hoteles" as HS
+participant "Pantalla comentarios\npor hotel" as HR
+participant "Pantalla auditoría" as AS
+participant "Pantalla administradores" as ADS
+participant "Modelo vista panel" as DVM
+participant "Modelo vista hoteles" as HVM
+participant "Modelo vista comentarios" as RVM
+participant "Modelo vista auditoría" as AVM
+participant "Modelo vista administradores" as ADV
+participant "Repositorio hoteles" as HRr
+participant "Repositorio reseñas" as RSR
+participant "Repositorio auditoría" as AUD
+participant "Repositorio autenticación" as AR
+participant "Servicio Firestore" as FS
+
+== Panel global ==
+
+SA -> DS : panel global
+DVM -> FS : todos los hoteles, reservas y reseñas
+DS --> SA : métricas globales
+
+== Gestionar hoteles ==
+
+SA -> HS : crear / editar / eliminar hotel
+HVM -> HRr : crearHotel / actualizarHotel / eliminarHotel
+HRr -> FS : hoteles / habitaciones
+
+== Comentarios por hotel ==
+
+SA -> HR : tocar estrella en tarjeta del hotel
+HR -> RVM : inicializar(idHotel)
+RVM -> RSR : obtenerResenasPorHotel(idHotel)
+HR --> SA : reseñas del hotel
+
+== Gestionar administradores ==
+
+SA -> ADS : crear administrador
+ADV -> AR : crearAdministrador(correo, contraseña)
+AR -> FS : crearUsuario(rol=ADMINISTRADOR)
+
+== Revertir auditoría ==
+
+SA -> AS : revertir cambio
+AS -> AVM : revertirCambio(idRegistro)
+AVM -> AUD : revertirCambio(idRegistro, idSuperAdmin)
+AUD -> FS : restaurar entidad + marcar revertido
+AS --> SA : cambio revertido
+
+@enduml

@@ -46,7 +46,7 @@ Bloque 4 (cómo administra el sistema)
 | Carpeta | Contenido |
 |---------|-----------|
 | `app/src/main/java/com/company/selvabooking/` | Código fuente Kotlin |
-| `docs/diagramas/` | Diagramas de casos de uso UML |
+| [docs/diagramas/UML.md](../diagramas/UML.md) | Diagramas UML consolidados (70 casos de uso) |
 | `docs/exposicion/` | Esta documentación de exposición |
 | `app/build/outputs/apk/debug/app-debug.apk` | APK de prueba |
 

@@ -1,0 +1,107 @@
+@startuml arquitectura_mvvm
+!theme plain
+title Selva Booking — Arquitectura MVVM (v2.1 — Jul 2026)
+
+package "Presentación (ui/)" {
+  [MainActivity] as MA
+  [NavGraph] as NG
+  [Screens Compose] as SCR
+  [Components] as CMP
+}
+
+package "ViewModel (viewmodel/)" {
+  [AuthViewModel] as AVM
+  [Client ViewModels] as CVM
+  [ManagerReviewsViewModel] as MVM
+  [AdminDashboardViewModel] as ADM1
+  [AdminHotelsViewModel] as ADM2
+  [AdminReservationsViewModel] as ADM3
+  [AdminGerentesViewModel] as ADM4
+  [AdminAdministradoresViewModel] as ADM5
+  [AdminAuditViewModel] as ADM6
+  [AdminHotelReviewsViewModel] as ADM7
+}
+
+package "Repository (repository/)" {
+  [AuthRepository] as AR
+  [HotelRepository] as HR
+  [RoomRepository] as RR
+  [ReservationRepository] as RESR
+  [ResenaRepository] as RSR
+  [SavedCardRepository] as SCR2
+}
+
+package "Datos (data/)" {
+  [FirebaseAuthService] as FAS
+  [FirestoreService] as FS
+  [StorageService] as SS
+  database "SharedPreferences" as SP
+}
+
+package "Utilidades (utils/)" {
+  [AdminDataScope] as ADS
+  [ValidationUtils] as VAL
+}
+
+package "Dominio (domain/model/)" {
+  [User · Hotel · Room · Reservation · Resena · AuditLog] as DOM
+}
+
+cloud "Firebase Auth" as FA
+cloud "Cloud Firestore" as FF
+cloud "Firebase Storage" as FST
+
+MA --> NG
+NG --> SCR
+SCR --> CMP
+SCR --> AVM
+SCR --> CVM
+SCR --> MVM
+SCR --> ADM1
+SCR --> ADM2
+SCR --> ADM3
+SCR --> ADM4
+SCR --> ADM5
+SCR --> ADM6
+SCR --> ADM7
+
+AVM --> AR
+AVM --> VAL
+CVM --> HR
+CVM --> RESR
+CVM --> RSR
+MVM --> RSR
+ADM1 --> ADS
+ADM1 --> AR
+ADM1 --> HR
+ADM1 --> RESR
+ADM1 --> RSR
+ADM2 --> ADS
+ADM2 --> HR
+ADM2 --> AR
+ADM3 --> ADS
+ADM3 --> RESR
+ADM4 --> AR
+ADM5 --> AR
+ADM6 --> FS
+ADM7 --> RSR
+
+AR --> FAS
+AR --> FS
+HR --> FS
+RR --> FS
+RESR --> FS
+RSR --> FS
+HR --> SS
+SCR2 --> SP
+
+FAS --> FA
+FS --> FF
+SS --> FST
+
+AR ..> DOM
+HR ..> DOM
+RESR ..> DOM
+RSR ..> DOM
+
+@enduml

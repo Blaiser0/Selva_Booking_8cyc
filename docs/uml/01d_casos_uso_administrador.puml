@@ -1,0 +1,77 @@
+@startuml casos_uso_administrador
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+left to right direction
+title Selva Booking — Casos de uso: Administrador (limitado)
+
+actor "Administrador" as ADM
+actor "Firebase" as FB <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  package "Supervisión" {
+    usecase "Panel de\nsupervisión" as UC30
+    usecase "Calcular métricas\nde su red" as UC30A
+    usecase "Mostrar alcance de\nencargados creados" as UC30B
+  }
+
+  package "Consulta hoteles" {
+    usecase "Consultar hoteles\nde su red" as UC31
+    usecase "Filtrar por\ncreadoPorAdminId" as UC31A
+    usecase "Ver encargado\nvinculado" as UC31B
+    usecase "Consultar habitaciones\n(solo lectura)" as UC31C
+  }
+
+  package "Consulta reservas" {
+    usecase "Consultar reservas\nde su red" as UC32
+    usecase "Filtrar por estado" as UC32A
+    usecase "Buscar por hotel\no cliente" as UC32B
+    usecase "Ver detalle\nde reserva" as UC32C
+  }
+
+  package "Encargados propios" {
+    usecase "Gestionar encargados\ncreados" as UC33
+    usecase "Crear encargado" as UC33A
+    usecase "Eliminar encargado\ny cascada" as UC33B
+    usecase "Asignar\ncreadoPorAdminId" as UC33C
+  }
+
+  package "Cuenta" {
+    usecase "Alternar a\nmodo cliente" as UC06
+    usecase "Cerrar sesión" as UC04
+    usecase "Mi cuenta" as UC14
+    usecase "Soporte y FAQ" as UC99
+  }
+}
+
+ADM --> UC30
+ADM --> UC31
+ADM --> UC32
+ADM --> UC33
+ADM --> UC06
+ADM --> UC04
+ADM --> UC14
+ADM --> UC99
+
+UC30 ..> UC30A : <<incluye>>
+UC30 ..> UC30B : <<incluye>>
+
+UC31 ..> UC31A : <<incluye>>
+UC31 ..> UC31B : <<incluye>>
+UC31C ..> UC31 : <<extiende>>
+
+UC32A ..> UC32 : <<extiende>>
+UC32B ..> UC32 : <<extiende>>
+UC32C ..> UC32 : <<extiende>>
+
+UC33A ..> UC33 : <<extiende>>
+UC33B ..> UC33 : <<extiende>>
+UC33A ..> UC33C : <<incluye>>
+
+UC30 ..> FB : <<incluye>>
+UC31 ..> FB : <<incluye>>
+UC32 ..> FB : <<incluye>>
+UC33 ..> FB : <<incluye>>
+
+@enduml

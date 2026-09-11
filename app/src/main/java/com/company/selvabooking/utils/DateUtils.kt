@@ -44,4 +44,17 @@ object DateUtils {
         val format = NumberFormat.getCurrencyInstance(Locale("es", "PE"))
         return format.format(amount)
     }
+
+    fun todayStorage(): String = formatStorage(Calendar.getInstance())
+
+    /** Devuelve true si la fecha de salida ya pasó (habitación puede liberarse). */
+    fun isCheckoutPast(fechaSalida: String): Boolean {
+        return fechaSalida < todayStorage()
+    }
+
+    fun formatTimestamp(timestamp: Long): String {
+        if (timestamp <= 0L) return ""
+        val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        return format.format(Date(timestamp))
+    }
 }

@@ -51,6 +51,7 @@ import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.domain.model.ReservationStatus
 import com.company.selvabooking.ui.components.BookingDateCard
 import com.company.selvabooking.ui.components.ErrorMessage
+import com.company.selvabooking.ui.components.LoadingIndicator
 import com.company.selvabooking.ui.components.ReservationStatusFilterRow
 import com.company.selvabooking.ui.components.SelvaScaffold
 import com.company.selvabooking.ui.components.SelvaTextField
@@ -74,86 +75,140 @@ fun AdminReservationsScreen(viewModel: AdminReservationsViewModel) {
     }
 
     if (uiState.showForm) {
-        ReservationFormDialog(viewModel = viewModel, onDismiss = { viewModel.closeForm() })
+        ReservationFormDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.closeForm() }
+        )
     }
 
-    uiState.selectedReservation?.let { reservation ->
+    if (uiState.selectedReservation != null) {
         ReservationDetailDialog(
-            reservation = reservation,
+            reservation = uiState.selectedReservation!!,
+            canManage = uiState.canManageReservations,
             onDismiss = { viewModel.selectReservation(null) },
-            onEdit = { viewModel.openEditForm(reservation) },
-            onDelete = { viewModel.deleteReservation(reservation.id) },
-            onConfirm = {
-                viewModel.confirmReservation(reservation.id)
-                viewModel.selectReservation(null)
-            },
-            onCancel = {
-                viewModel.cancelReservation(reservation.id)
-                viewModel.selectReservation(null)
-            },
-            onComplete = {
-                viewModel.completeReservation(reservation.id)
-                viewModel.selectReservation(null)
-            }
+            onEdit = { viewModel.openEditForm(uiState.selectedReservation!!) },
+            onDelete = { viewModel.deleteReservation(uiState.selectedReservation!!.id) },
+            onTerminate = { viewModel.terminateReservation(uiState.selectedReservation!!.id) }
         )
     }
 
     SelvaScaffold(
-        topBar = { SelvaTopAppBar(title = "Gestión de Reservas") },
+        topBar = {
+            SelvaTopAppBar(
+                title = when {
+                    uiState.isGerenteMode -> "Historial de reservas"
+                    uiState.canManageReservations -> "Gestionar reservas"
+                    else -> "Reservas"
+                }
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.openCreateForm() },
-                containerColor = MaterialTheme.colorScheme.tertiary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Nueva reserva")
+            if (uiState.canManageReservations) {
+                FloatingActionButton(
+                    onClick = { viewModel.openCreateForm() },
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Nueva reserva")
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                SelvaTextField(
-                    value = uiState.searchQuery,
-                    onValueChange = viewModel::updateSearchQuery,
-                    label = "Buscar por hotel, cliente o email"
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ReservationStatusFilterRow(
-                    selectedStatus = uiState.statusFilter,
-                    onStatusSelected = viewModel::updateStatusFilter
-                )
-            }
-            if (uiState.filteredReservations.isEmpty() && !uiState.isLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        "No hay reservas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+        if (!uiState.isRoleResolved || uiState.isLoading) {
+            LoadingIndicator(Modifier.padding(padding))
+            return@SelvaScaffold
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+                    if (uiState.isGerenteMode) {
+                        Text(
+                            text = uiState.hotelName.ifBlank { "Su hotel" },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ForestGreen
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ReservationCountChip(
+                                label = "Total",
+                                count = uiState.totalCount,
+                                modifier = Modifier.weight(1f)
+                            )
+                            ReservationCountChip(
+                                label = "Confirmadas",
+                                count = uiState.confirmadasCount,
+                                modifier = Modifier.weight(1f)
+                            )
+                            ReservationCountChip(
+                                label = "Terminadas",
+                                count = uiState.terminadasCount,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                    SelvaTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        label = if (uiState.isGerenteMode) {
+                            "Buscar por cliente, habitación o email"
+                        } else {
+                            "Buscar por hotel, cliente o email"
+                        }
                     )
-                    Text(
-                        "Las reservas creadas desde la vista de comparación aparecerán aquí. También puedes crearlas manualmente.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ReservationStatusFilterRow(
+                        selectedStatus = uiState.statusFilter,
+                        onStatusSelected = viewModel::updateStatusFilter
                     )
                 }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.filteredReservations) { reservation ->
-                        AdminReservationCard(
-                            reservation = reservation,
-                            onClick = { viewModel.selectReservation(reservation) },
-                            onEdit = { viewModel.openEditForm(reservation) },
-                            onDelete = { viewModel.deleteReservation(reservation.id) }
+            }
+            if (uiState.filteredReservations.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            if (uiState.isGerenteMode) "No hay reservas en su hotel" else "No hay reservas",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            if (uiState.isGerenteMode) {
+                                "Las reservas confirmadas y terminadas de su hotel aparecerán aquí. Use los filtros para buscar."
+                            } else {
+                                "Las reservas confirmadas y terminadas aparecerán aquí. Use los filtros para ver por estado."
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            } else {
+                items(
+                    items = uiState.filteredReservations,
+                    key = { it.id }
+                ) { reservation ->
+                    AdminReservationCard(
+                        reservation = reservation,
+                        showHotelName = !uiState.isGerenteMode,
+                        onClick = { viewModel.selectReservation(reservation) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
             }
         }
@@ -161,15 +216,47 @@ fun AdminReservationsScreen(viewModel: AdminReservationsViewModel) {
 }
 
 @Composable
+private fun ReservationCountChip(
+    label: String,
+    count: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = CreamSurfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = ForestGreen
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 private fun AdminReservationCard(
     reservation: Reservation,
+    showHotelName: Boolean = true,
     onClick: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -179,16 +266,19 @@ private fun AdminReservationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        reservation.hotelNombre,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (showHotelName) {
+                        Text(
+                            reservation.hotelNombre,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
                         reservation.roomNombre,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (showHotelName) FontWeight.Normal else FontWeight.Bold
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -205,21 +295,6 @@ private fun AdminReservationCard(
                 color = ForestGreen,
                 fontWeight = FontWeight.SemiBold
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Editar")
-                }
-                TextButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                }
-            }
         }
     }
 }
@@ -356,7 +431,7 @@ private fun ReservationFormDialog(
 
                 Text("Estado", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ReservationStatus.entries.forEach { status ->
+                    ReservationStatus.publicStatuses.forEach { status ->
                         FilterChip(
                             selected = uiState.estado == status,
                             onClick = { viewModel.updateEstado(status) },
@@ -389,32 +464,12 @@ private fun ReservationFormDialog(
 @Composable
 private fun ReservationDetailDialog(
     reservation: Reservation,
+    canManage: Boolean,
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
-    onComplete: () -> Unit
+    onTerminate: () -> Unit
 ) {
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Eliminar reserva") },
-            text = { Text("¿Eliminar la reserva de ${reservation.userNombre} en ${reservation.hotelNombre}?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDelete()
-                    showDeleteConfirm = false
-                }) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar") }
-            }
-        )
-    }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Detalle de reserva") },
@@ -435,24 +490,18 @@ private fun ReservationDetailDialog(
             }
         },
         confirmButton = {
-            Row {
-                TextButton(onClick = onEdit) { Text("Editar") }
-                TextButton(onClick = { showDeleteConfirm = true }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                }
-                if (reservation.estado == ReservationStatus.PENDIENTE) {
-                    TextButton(onClick = onConfirm) { Text("Confirmar") }
-                }
-                if (reservation.estado != ReservationStatus.CANCELADA) {
-                    TextButton(onClick = onCancel) { Text("Cancelar") }
-                }
-                if (reservation.estado == ReservationStatus.CONFIRMADA) {
-                    TextButton(onClick = onComplete) { Text("Completar") }
-                }
-            }
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
+            if (canManage) {
+                Row {
+                    if (reservation.estado == ReservationStatus.CONFIRMADA) {
+                        TextButton(onClick = onTerminate) { Text("Terminar") }
+                    }
+                    TextButton(onClick = onEdit) { Text("Editar") }
+                    TextButton(onClick = onDelete) { Text("Eliminar") }
+                }
+            }
         }
     )
 }

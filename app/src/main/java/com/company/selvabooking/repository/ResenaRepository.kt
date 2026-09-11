@@ -13,6 +13,9 @@ class ResenaRepository(
     fun getResenasByHotelFlow(hotelId: String): Flow<List<Resena>> =
         firestoreService.getResenasByHotelFlow(hotelId)
 
+    fun getAllResenasFlow(): Flow<List<Resena>> =
+        firestoreService.getAllResenasFlow()
+
     suspend fun createResena(resena: Resena): Result<String> {
         return firestoreService.createResena(resena).also { result ->
             if (result.isSuccess) {

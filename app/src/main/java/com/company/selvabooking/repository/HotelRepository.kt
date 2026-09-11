@@ -4,6 +4,7 @@ import android.net.Uri
 import com.company.selvabooking.data.firebase.FirestoreService
 import com.company.selvabooking.data.firebase.StorageService
 import com.company.selvabooking.domain.model.Hotel
+import com.company.selvabooking.utils.HotelFormOptions
 import kotlinx.coroutines.flow.Flow
 
 class HotelRepository(
@@ -12,11 +13,40 @@ class HotelRepository(
 ) {
     fun getHotelsFlow(): Flow<List<Hotel>> = firestoreService.getHotelsFlow()
 
+    fun getHotelsByOwnerFlow(ownerId: String): Flow<List<Hotel>> =
+        firestoreService.getHotelsByOwnerFlow(ownerId)
+
     suspend fun getHotel(hotelId: String): Result<Hotel> = firestoreService.getHotel(hotelId)
 
-    suspend fun createHotel(hotel: Hotel): Result<String> = firestoreService.createHotel(hotel)
+    suspend fun getHotelsByOwner(ownerId: String): Result<List<Hotel>> =
+        firestoreService.getHotelsByOwner(ownerId)
 
-    suspend fun updateHotel(hotel: Hotel): Result<Unit> = firestoreService.updateHotel(hotel)
+    suspend fun createHotel(hotel: Hotel): Result<String> {
+        if (hotel.propietarioId.isNotBlank()) {
+            val ownedHotels = getHotelsByOwner(hotel.propietarioId).getOrDefault(emptyList())
+            val isNewAssignment = hotel.id.isBlank() ||
+                ownedHotels.none { it.id == hotel.id }
+            if (isNewAssignment && ownedHotels.size >= HotelFormOptions.MAX_HOTELS_PER_GERENTE) {
+                return Result.failure(
+                    Exception("Cada encargado solo puede tener un hotel registrado")
+                )
+            }
+        }
+        return firestoreService.createHotel(hotel)
+    }
+
+    suspend fun updateHotel(hotel: Hotel): Result<Unit> {
+        if (hotel.propietarioId.isNotBlank()) {
+            val ownedHotels = getHotelsByOwner(hotel.propietarioId).getOrDefault(emptyList())
+            val otherHotels = ownedHotels.filter { it.id != hotel.id }
+            if (otherHotels.isNotEmpty()) {
+                return Result.failure(
+                    Exception("Cada encargado solo puede tener un hotel registrado")
+                )
+            }
+        }
+        return firestoreService.updateHotel(hotel)
+    }
 
     suspend fun deleteHotel(hotelId: String): Result<Unit> = firestoreService.deleteHotel(hotelId)
 

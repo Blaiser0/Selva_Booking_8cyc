@@ -1,0 +1,123 @@
+@startuml clases
+!theme plain
+skinparam classAttributeIconSize 0
+title Selva Booking — Diagrama de clases (dominio)
+
+enum RolUsuario {
+  CLIENTE
+  SUPER_ADMIN
+  ADMINISTRADOR
+  GERENTE_HOTEL
+  --
+  +tieneAccesoPanelAdmin()
+  +tienePoderesCompletos()
+}
+
+enum EstadoReserva {
+  PENDIENTE_PAGO
+  CONFIRMADA
+  TERMINADA
+  --
+  +esPublico() : Boolean
+  +reservaInventario() : Boolean
+}
+
+enum AccionAuditoria {
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+}
+
+enum TipoEntidadAuditoria {
+  HOTEL
+  HABITACION
+}
+
+class Usuario {
+  +id : String
+  +nombre : String
+  +correo : String
+  +telefono : String
+  +urlFoto : String
+  +rol : RolUsuario
+  +puedeAlternarRol : Boolean
+  +perfilCompleto : Boolean
+  +rolAlternativo : String
+  +creadoPorAdminId : String
+  +esCuentaAdministrador() : Boolean
+}
+
+class Hotel {
+  +id : String
+  +nombre : String
+  +ciudad : String
+  +categoria : String
+  +precioMinimo : Double
+  +calificacion : Double
+  +calificacionBase : Double
+  +idPropietario : String
+  +destacado : Boolean
+  +oferta : Boolean
+}
+
+class Habitacion {
+  +id : String
+  +idHotel : String
+  +nombre : String
+  +precio : Double
+  +capacidad : Int
+  +cantidad : Int
+  +inventario : Int
+  +disponible : Boolean
+  +esReservable() : Boolean
+}
+
+class Reserva {
+  +id : String
+  +idUsuario : String
+  +idHotel : String
+  +idHabitacion : String
+  +fechaIngreso : String
+  +fechaSalida : String
+  +huespedes : Int
+  +precioTotal : Double
+  +estado : EstadoReserva
+}
+
+class Resena {
+  +id : String
+  +idHotel : String
+  +idUsuario : String
+  +idReserva : String
+  +nombreUsuario : String
+  +calificacion : Int
+  +comentario : String
+  +fechaCreacion : Long
+}
+
+class RegistroAuditoria {
+  +id : String
+  +marcaTiempo : Long
+  +idActor : String
+  +accion : AccionAuditoria
+  +tipoEntidad : TipoEntidadAuditoria
+  +idEntidad : String
+  +revertido : Boolean
+  +puedeRevertir() : Boolean
+}
+
+Usuario --> RolUsuario
+Usuario "1" o-- "0..*" Usuario : creadoPorAdminId
+Usuario "1" o-- "0..1" Hotel : propietario
+Usuario "1" o-- "0..*" Reserva
+Usuario "1" o-- "0..*" Resena
+Usuario "1" o-- "0..*" RegistroAuditoria : actor
+Reserva --> EstadoReserva
+RegistroAuditoria --> AccionAuditoria
+RegistroAuditoria --> TipoEntidadAuditoria
+Hotel "1" *-- "0..*" Habitacion
+Hotel "1" o-- "0..*" Reserva
+Hotel "1" o-- "0..*" Resena
+Habitacion "1" o-- "0..*" Reserva
+
+@enduml

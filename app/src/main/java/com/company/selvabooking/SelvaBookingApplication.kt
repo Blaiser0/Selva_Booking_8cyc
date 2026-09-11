@@ -1,6 +1,7 @@
 package com.company.selvabooking
 
 import android.app.Application
+import com.company.selvabooking.repository.AuditRepository
 import com.company.selvabooking.repository.AuthRepository
 import com.company.selvabooking.repository.HotelRepository
 import com.company.selvabooking.repository.ResenaRepository
@@ -14,5 +15,6 @@ class SelvaBookingApplication : Application() {
     val roomRepository by lazy { RoomRepository() }
     val reservationRepository by lazy { ReservationRepository() }
     val resenaRepository by lazy { ResenaRepository() }
+    val auditRepository by lazy { AuditRepository() }
     val savedCardRepository by lazy { SavedCardRepository(this) }
 }

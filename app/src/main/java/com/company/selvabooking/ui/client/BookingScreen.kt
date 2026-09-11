@@ -57,13 +57,21 @@ import java.util.Calendar
 fun BookingScreen(
     viewModel: BookingViewModel,
     onBack: () -> Unit,
-    onBookingComplete: (String) -> Unit
+    onBookingComplete: (String) -> Unit,
+    onRequireAuth: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.reservationId) {
         uiState.reservationId?.let { onBookingComplete(it) }
+    }
+
+    LaunchedEffect(uiState.requiresAuth) {
+        if (uiState.requiresAuth) {
+            viewModel.clearRequiresAuth()
+            onRequireAuth()
+        }
     }
 
     SelvaScaffold(

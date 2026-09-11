@@ -1,0 +1,88 @@
+@startuml casos_uso_encargado
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+left to right direction
+title Selva Booking — Casos de uso: Encargado de hotel
+
+actor "Encargado\nde hotel" as ENC
+actor "Firebase" as FB <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  package "Primer acceso" {
+    usecase "Completar perfil\nencargado" as UC05
+    usecase "Validar datos\nobligatorios" as UC05A
+  }
+
+  package "Mi hotel" {
+    usecase "Gestionar mi hotel" as UC20
+    usecase "Registrar hotel" as UC20A
+    usecase "Editar hotel" as UC20B
+    usecase "Eliminar hotel" as UC20C
+    usecase "Subir imágenes\ndel hotel" as UC20D
+  }
+
+  package "Habitaciones" {
+    usecase "Gestionar\nhabitaciones" as UC21
+    usecase "Registrar\nhabitación" as UC21A
+    usecase "Editar habitación\ne inventario" as UC21B
+    usecase "Eliminar\nhabitación" as UC21C
+    usecase "Control de\ninventario" as UC21D
+  }
+
+  package "Reservas e interacción" {
+    usecase "Historial de\nreservas" as UC22
+    usecase "Filtrar Confirmada\n/ Terminada" as UC22A
+    usecase "Buscar por cliente\no habitación" as UC22B
+    usecase "Ver detalle\nde reserva" as UC22C
+    usecase "Ver comentarios\nde huéspedes" as UC23
+    usecase "Listado en\ntiempo real" as UC23A
+  }
+
+  package "Cuenta" {
+    usecase "Alternar a\nmodo cliente" as UC06
+    usecase "Cerrar sesión" as UC04
+    usecase "Mi cuenta" as UC14
+    usecase "Soporte y FAQ" as UC99
+  }
+}
+
+ENC --> UC05
+ENC --> UC20
+ENC --> UC21
+ENC --> UC22
+ENC --> UC23
+ENC --> UC06
+ENC --> UC04
+ENC --> UC14
+ENC --> UC99
+
+UC05 ..> UC05A : <<incluye>>
+
+UC20A ..> UC20 : <<extiende>>
+UC20B ..> UC20 : <<extiende>>
+UC20C ..> UC20 : <<extiende>>
+UC20A ..> UC20D : <<incluye>>
+UC20B ..> UC20D : <<incluye>>
+
+UC21A ..> UC21 : <<extiende>>
+UC21B ..> UC21 : <<extiende>>
+UC21C ..> UC21 : <<extiende>>
+UC21B ..> UC21D : <<incluye>>
+UC20 ..> UC21 : <<extiende>>
+
+UC22A ..> UC22 : <<extiende>>
+UC22B ..> UC22 : <<extiende>>
+UC22C ..> UC22 : <<extiende>>
+
+UC23A ..> UC23 : <<extiende>>
+UC20 ..> UC23 : <<extiende>>
+
+UC05 ..> FB : <<incluye>>
+UC20 ..> FB : <<incluye>>
+UC21 ..> FB : <<incluye>>
+UC22 ..> FB : <<incluye>>
+UC23 ..> FB : <<incluye>>
+
+@enduml

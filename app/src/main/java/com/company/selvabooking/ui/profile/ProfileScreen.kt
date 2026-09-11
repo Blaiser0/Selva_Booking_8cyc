@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.company.selvabooking.domain.model.User
@@ -133,11 +135,19 @@ fun ProfileScreen(
     }
 
     if (uiState.showSwitchToClientDialog) {
+        val staffRole = uiState.user?.rol
         AlertDialog(
             onDismissRequest = viewModel::dismissSwitchToClientDialog,
             title = { Text("Cambiar a modo cliente") },
             text = {
-                Text("¿Deseas cambiar tu cuenta a modo Cliente? Podrás volver a administrador con 3 toques en el escudo.")
+                Text(
+                    when (staffRole) {
+                        UserRole.GERENTE_HOTEL ->
+                            "¿Deseas cambiar tu cuenta a modo Cliente? Podrás volver a encargado del hotel con 3 toques en el escudo."
+                        else ->
+                            "¿Deseas cambiar tu cuenta a modo Cliente? Podrás volver a administrador con 3 toques en el escudo."
+                    }
+                )
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmSwitchToClientRole(onUserUpdated) }) {
@@ -146,6 +156,26 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissSwitchToClientDialog) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (uiState.showSwitchToGerenteDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissSwitchToGerenteDialog,
+            title = { Text("Cambiar a modo encargado del hotel") },
+            text = {
+                Text("¿Deseas activar el modo encargado del hotel en tu cuenta?")
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmSwitchToGerenteRole(onUserUpdated) }) {
+                    Text("Activar", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissSwitchToGerenteDialog) {
                     Text("Cancelar")
                 }
             }
@@ -166,29 +196,6 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissSwitchToAdminDialog) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
-
-    if (uiState.showAdminRequestDialog) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissAdminRequestDialog,
-            title = { Text("Solicitar acceso de administrador") },
-            text = {
-                Text(
-                    "¿Deseas solicitar acceso como administrador? " +
-                        "Tu solicitud quedará pendiente de revisión."
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.confirmAdminAccessRequest(onUserUpdated) }) {
-                    Text("Solicitar", color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissAdminRequestDialog) {
                     Text("Cancelar")
                 }
             }
@@ -261,7 +268,7 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = user.rol.value,
+                                text = user.rol.displayLabel,
                                 style = MaterialTheme.typography.labelLarge,
                                 color = ForestGreen,
                                 modifier = Modifier
@@ -271,14 +278,6 @@ fun ProfileScreen(
                                     )
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             )
-                            if (user.hasPendingAdminRequest) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Solicitud de administrador pendiente",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
-                            }
                         }
                     }
 
@@ -313,20 +312,26 @@ fun ProfileScreen(
                                 value = user.email
                             )
                             ProfileInfoRow(
-                                icon = Icons.Default.Shield,
-                                label = "Tipo de cuenta",
-                                value = when {
-                                    user.rol == UserRole.ADMINISTRADOR -> user.rol.value
-                                    user.hasPendingAdminRequest -> "${user.rol.value} (solicitud pendiente)"
-                                    user.hasRejectedAdminRequest -> "${user.rol.value} (solicitud rechazada)"
-                                    else -> user.rol.value
-                                },
-                                onTripleTap = viewModel::onAccountTypeTripleTap
+                                icon = Icons.Default.Phone,
+                                label = "Teléfono",
+                                value = user.telefono.ifBlank { "Sin teléfono" }
                             )
+                            if (user.canSwitchAccountType) {
+                                ProfileInfoRow(
+                                    icon = Icons.Default.Shield,
+                                    label = "Tipo de cuenta",
+                                    value = when (user.rol) {
+                                        UserRole.ADMINISTRADOR -> user.rol.displayLabel
+                                        UserRole.GERENTE_HOTEL -> user.rol.displayLabel
+                                        else -> user.rol.displayLabel
+                                    },
+                                    onTripleTap = viewModel::onAccountTypeTripleTap
+                                )
+                            }
 
                             if (!uiState.isEditing) {
                                 SelvaOutlinedButton(
-                                    text = "Editar nombre",
+                                    text = "Editar perfil",
                                     onClick = viewModel::startEditing
                                 )
                             } else {
@@ -335,6 +340,13 @@ fun ProfileScreen(
                                     onValueChange = viewModel::updateNombre,
                                     label = "Nombre completo",
                                     error = uiState.nombreError
+                                )
+                                SelvaTextField(
+                                    value = uiState.telefono,
+                                    onValueChange = viewModel::updateTelefono,
+                                    label = "Teléfono",
+                                    keyboardType = KeyboardType.Phone,
+                                    error = uiState.telefonoError
                                 )
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),

@@ -34,7 +34,8 @@ data class BookingUiState(
     val isSubmitting: Boolean = false,
     val reservationId: String? = null,
     val error: String? = null,
-    val fechaError: String? = null
+    val fechaError: String? = null,
+    val requiresAuth: Boolean = false
 )
 
 class BookingViewModel(
@@ -93,6 +94,10 @@ class BookingViewModel(
         _uiState.update { it.copy(huespedes = count.coerceAtLeast(1)) }
     }
 
+    fun clearRequiresAuth() {
+        _uiState.update { it.copy(requiresAuth = false) }
+    }
+
     private fun calculateTotal() {
         val state = _uiState.value
         if (state.fechaIngreso.isNotEmpty() && state.fechaSalida.isNotEmpty() && state.room != null) {
@@ -116,6 +121,14 @@ class BookingViewModel(
             _uiState.update { it.copy(fechaError = "Excede la capacidad de la habitación") }
             return
         }
+        if (state.room?.isReservable != true) {
+            _uiState.update { it.copy(fechaError = "No hay habitaciones disponibles de este tipo") }
+            return
+        }
+        if (!authRepository.isLoggedIn) {
+            _uiState.update { it.copy(requiresAuth = true) }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
@@ -133,7 +146,7 @@ class BookingViewModel(
                 fechaSalida = state.fechaSalida,
                 huespedes = state.huespedes,
                 precioTotal = state.totalPrice,
-                estado = ReservationStatus.PENDIENTE
+                estado = ReservationStatus.AWAITING_PAYMENT
             )
             reservationRepository.createReservation(reservation).fold(
                 onSuccess = { id ->

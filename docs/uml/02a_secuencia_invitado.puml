@@ -1,0 +1,47 @@
+@startuml secuencia_invitado
+!theme plain
+title Selva Booking — Secuencia: Invitado
+
+actor Invitado as I
+participant "Pantalla inicio\nde sesión / registro" as UI
+participant "Modelo de vista\nautenticación" as AVM
+participant "Utilidad validación" as VAL
+participant "Repositorio\nautenticación" as AR
+participant "Servicio Firebase Auth" as FAS
+participant "Servicio Firestore" as FS
+database "Firebase" as FB
+
+== Registrarse ==
+
+I -> UI : nombre, correo, teléfono, contraseña
+UI -> AVM : registrar()
+AVM -> VAL : validarNombre / validarTelefono / validarCorreo
+VAL --> AVM : válido
+AVM -> AR : registrar(...)
+AR -> FAS : crearCuenta(correo, contraseña)
+FAS -> FB : Autenticación Firebase
+FB --> FAS : identificador
+AR -> FS : crearUsuario(rol=CLIENTE)
+FS -> FB : usuarios/{id}
+FB --> UI : Inicio del cliente
+
+== Iniciar sesión ==
+
+I -> UI : correo y contraseña
+UI -> AVM : iniciarSesion()
+AVM -> AR : iniciarSesion(correo, contraseña)
+AR -> FAS : iniciarSesion(correo, contraseña)
+FAS -> FB : Autenticación Firebase
+AR -> FS : obtenerUsuario(id)
+FS -> FB : usuarios/{id}
+FB --> UI : redirigir según rol
+
+== Recuperar contraseña ==
+
+I -> UI : solicita restablecimiento
+UI -> AVM : enviarRecuperacionContrasena()
+AVM -> FAS : enviarCorreoRecuperacion(correo)
+FAS -> FB : correo de recuperación
+FB --> I : correo enviado
+
+@enduml

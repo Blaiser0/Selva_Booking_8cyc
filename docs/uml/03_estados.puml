@@ -1,0 +1,39 @@
+@startuml estados
+!theme plain
+title Selva Booking — Diagrama de estados: Reserva
+
+[*] --> PENDIENTE_PAGO : crear reserva\n(ModeloVistaReserva)
+
+PENDIENTE_PAGO --> CONFIRMADA : pago exitoso\ninventario - 1
+
+CONFIRMADA --> TERMINADA : fecha de salida vencida\nexpirarReservasFinalizadas()\ninventario + 1
+
+state PENDIENTE_PAGO {
+  state "Interno\nesPublico = falso" as INT
+}
+
+state CONFIRMADA {
+  state "Activa\nreservaInventario = verdadero" as ACT
+}
+
+state TERMINADA {
+  state "Finalizada\ninventario liberado" as FIN
+}
+
+note right of PENDIENTE_PAGO
+  No visible en listados
+  de admin, encargado
+  ni cliente público
+end note
+
+note right of CONFIRMADA
+  Decrementa inventario
+  de la habitación
+end note
+
+note right of TERMINADA
+  Incrementa inventario
+  al finalizar estadía
+end note
+
+@enduml

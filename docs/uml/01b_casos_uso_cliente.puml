@@ -1,0 +1,89 @@
+@startuml casos_uso_cliente
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+left to right direction
+title Selva Booking — Casos de uso: Cliente
+
+actor "Cliente" as CLI
+actor "Firebase" as FB <<system>>
+actor "Pasarela\nsimulada" as PAY <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  package "Exploración" {
+    usecase "Explorar hoteles" as UC10
+    usecase "Buscar por ciudad\ny criterios" as UC10A
+    usecase "Filtrar y ordenar\nresultados" as UC10B
+    usecase "Ver detalle\ndel hotel" as UC10C
+    usecase "Ver habitaciones\ncon inventario" as UC10D
+  }
+
+  package "Reserva y pago" {
+    usecase "Reservar y pagar" as UC11
+    usecase "Validar fechas\ny huéspedes" as UC11A
+    usecase "Calcular\nprecio total" as UC11B
+    usecase "Crear reserva\npendiente de pago" as UC11C
+    usecase "Procesar pago\nsimulado" as UC11D
+    usecase "Confirmar reserva\ny descontar inventario" as UC11E
+  }
+
+  package "Mis reservas" {
+    usecase "Ver mis reservas" as UC12
+    usecase "Filtrar por estado" as UC12A
+  }
+
+  package "Reseñas" {
+    usecase "Comentar hotel" as UC13
+    usecase "Validar reserva\nprevia en hotel" as UC13A
+    usecase "Recalcular\ncalificación" as UC13B
+  }
+
+  package "Cuenta" {
+    usecase "Gestionar mi cuenta" as UC14
+    usecase "Editar perfil\ny teléfono" as UC14A
+    usecase "Gestionar tarjeta\nguardada" as UC14B
+    usecase "Alternar a modo\nencargado o admin" as UC14C
+    usecase "Cerrar sesión" as UC04
+    usecase "Soporte y FAQ" as UC99
+  }
+}
+
+CLI --> UC10
+CLI --> UC11
+CLI --> UC12
+CLI --> UC13
+CLI --> UC14
+CLI --> UC04
+CLI --> UC99
+
+UC10 ..> UC10C : <<incluye>>
+UC10C ..> UC10D : <<incluye>>
+UC10A ..> UC10 : <<extiende>>
+UC10B ..> UC10 : <<extiende>>
+UC10C ..> UC11 : <<extiende>>
+
+UC11 ..> UC11A : <<incluye>>
+UC11 ..> UC11B : <<incluye>>
+UC11 ..> UC11C : <<incluye>>
+UC11 ..> UC11D : <<incluye>>
+UC11 ..> UC11E : <<incluye>>
+
+UC12A ..> UC12 : <<extiende>>
+
+UC13 ..> UC13A : <<incluye>>
+UC13 ..> UC13B : <<incluye>>
+UC10C ..> UC13 : <<extiende>>
+
+UC14 ..> UC14A : <<incluye>>
+UC14B ..> UC14 : <<extiende>>
+UC14C ..> UC14 : <<extiende>>
+
+UC10 ..> FB : <<incluye>>
+UC11C ..> FB : <<incluye>>
+UC11E ..> FB : <<incluye>>
+UC12 ..> FB : <<incluye>>
+UC13 ..> FB : <<incluye>>
+UC11D ..> PAY : <<incluye>>
+
+@enduml

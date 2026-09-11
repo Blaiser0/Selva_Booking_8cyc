@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.company.selvabooking.domain.model.Room
+import com.company.selvabooking.ui.components.LoadingIndicator
 import com.company.selvabooking.ui.components.SelvaScaffold
 import com.company.selvabooking.ui.components.SelvaTextField
 import com.company.selvabooking.ui.components.SelvaTopAppBar
@@ -72,9 +73,11 @@ fun AdminRoomsScreen(
     var roomToDelete by remember { mutableStateOf<Room?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.message, uiState.error) {
+    LaunchedEffect(uiState.message, uiState.error, uiState.accessDenied) {
         uiState.message?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessages() }
-        uiState.error?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessages() }
+        if (!uiState.accessDenied) {
+            uiState.error?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessages() }
+        }
     }
 
     LaunchedEffect(uiState.message) {
@@ -107,7 +110,11 @@ fun AdminRoomsScreen(
     SelvaScaffold(
         topBar = {
             SelvaTopAppBar(
-                title = "Habitaciones - ${uiState.hotelName}",
+                title = if (uiState.hotelName.isBlank()) {
+                    "Habitaciones"
+                } else {
+                    "Habitaciones - ${uiState.hotelName}"
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -120,15 +127,60 @@ fun AdminRoomsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.clearForm(); showForm = true },
-                containerColor = MaterialTheme.colorScheme.tertiary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar habitación")
+            if (!uiState.isLoading && !uiState.accessDenied && !uiState.readOnly) {
+                FloatingActionButton(
+                    onClick = { viewModel.clearForm(); showForm = true },
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Agregar habitación")
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
+        if (uiState.isLoading) {
+            LoadingIndicator(Modifier.padding(padding))
+            return@SelvaScaffold
+        }
+        if (uiState.accessDenied) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = uiState.error ?: "No tiene permiso para gestionar este hotel",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            return@SelvaScaffold
+        }
+        if (uiState.rooms.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Sin habitaciones",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Este hotel aún no tiene habitaciones registradas.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            return@SelvaScaffold
+        }
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),
@@ -187,7 +239,7 @@ fun AdminRoomsScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Capacidad: ${room.capacidad} · ${if (room.disponible) "Disponible" else "No disponible"}",
+                                "Capacidad: ${room.capacidad} · Stock: ${room.stock}/${room.cantidad} · ${if (room.disponible) "Activo" else "Inactivo"}",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             if (room.descripcion.isNotBlank()) {
@@ -197,16 +249,18 @@ fun AdminRoomsScreen(
                                     maxLines = 2
                                 )
                             }
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                IconButton(onClick = { viewModel.loadRoomForEdit(room); showForm = true }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Editar")
-                                }
-                                IconButton(onClick = { roomToDelete = room }) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Eliminar",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
+                            if (!uiState.accessDenied && !uiState.readOnly) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    IconButton(onClick = { viewModel.loadRoomForEdit(room); showForm = true }) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Editar")
+                                    }
+                                    IconButton(onClick = { roomToDelete = room }) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Eliminar",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -246,7 +300,18 @@ private fun RoomFormDialog(viewModel: AdminRoomsViewModel, onDismiss: () -> Unit
                     singleLine = false
                 )
                 SelvaTextField(uiState.precio, viewModel::updatePrecio, "Precio por noche", keyboardType = KeyboardType.Number)
-                SelvaTextField(uiState.capacidad, viewModel::updateCapacidad, "Capacidad", keyboardType = KeyboardType.Number)
+                SelvaTextField(uiState.capacidad, viewModel::updateCapacidad, "Capacidad (huéspedes)", keyboardType = KeyboardType.Number)
+                SelvaTextField(
+                    uiState.cantidad,
+                    viewModel::updateCantidad,
+                    "Cantidad de habitaciones de este tipo",
+                    keyboardType = KeyboardType.Number
+                )
+                Text(
+                    "Indica cuántas habitaciones iguales tiene el hotel (ej. 5 matrimoniales).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = uiState.disponible, onCheckedChange = viewModel::updateDisponible)
                     Text("Disponible para reservar")

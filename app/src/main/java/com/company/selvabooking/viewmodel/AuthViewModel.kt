@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.company.selvabooking.SelvaBookingApplication
 import com.company.selvabooking.domain.model.User
 import com.company.selvabooking.domain.model.UserRole
+import com.company.selvabooking.navigation.PendingAuthAction
 import com.company.selvabooking.repository.AuthRepository
 import com.company.selvabooking.utils.ValidationUtils
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 
 data class AuthUiState(
     val isLoading: Boolean = false,
+    val isSessionReady: Boolean = false,
     val currentUser: User? = null,
     val error: String? = null,
     val isAuthenticated: Boolean = false,
@@ -33,7 +35,11 @@ data class AuthUiState(
     val termsAccepted: Boolean = false,
     val termsViewed: Boolean = false,
     val termsError: String? = null,
-    val showTermsDialog: Boolean = false
+    val showTermsDialog: Boolean = false,
+    val telefono: String = "",
+    val telefonoError: String? = null,
+    val showGerenteProfileForm: Boolean = false,
+    val isCompletingProfile: Boolean = false
 )
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -44,6 +50,15 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    private var pendingAuthAction: PendingAuthAction? = null
+
+    fun setPendingAuthAction(action: PendingAuthAction?) {
+        pendingAuthAction = action
+    }
+
+    fun consumePendingAuthAction(): PendingAuthAction? =
+        pendingAuthAction.also { pendingAuthAction = null }
+
     init {
         checkAuthState()
     }
@@ -51,25 +66,73 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private fun checkAuthState() {
         viewModelScope.launch {
             if (authRepository.isLoggedIn) {
-                authRepository.getCurrentUserData().onSuccess { user ->
-                    _uiState.update {
-                        it.copy(
-                            currentUser = user,
-                            isAuthenticated = true
-                        )
+                authRepository.getCurrentUserData().fold(
+                    onSuccess = { user ->
+                        _uiState.update {
+                            it.copy(
+                                currentUser = user,
+                                isAuthenticated = true,
+                                isSessionReady = true
+                            )
+                        }
+                        if (user.rol == UserRole.SUPER_ADMIN) {
+                            authRepository.seedSampleDataIfNeeded()
+                        }
+                    },
+                    onFailure = {
+                        authRepository.logout()
+                        _uiState.update {
+                            it.copy(
+                                currentUser = null,
+                                isAuthenticated = false,
+                                isSessionReady = true
+                            )
+                        }
                     }
-                    if (user.rol == UserRole.ADMINISTRADOR) {
-                        authRepository.seedSampleDataIfNeeded()
-                    }
+                )
+            } else {
+                _uiState.update {
+                    it.copy(
+                        currentUser = null,
+                        isAuthenticated = false,
+                        isSessionReady = true
+                    )
                 }
             }
         }
     }
 
-    fun updateNombre(value: String) = _uiState.update { it.copy(nombre = value, nombreError = null) }
+    fun updateNombre(value: String) = _uiState.update {
+        it.copy(
+            nombre = ValidationUtils.filterPersonNameInput(value),
+            nombreError = null
+        )
+    }
     fun updateEmail(value: String) = _uiState.update { it.copy(email = value, emailError = null) }
     fun updatePassword(value: String) = _uiState.update { it.copy(password = value, passwordError = null) }
     fun updateConfirmPassword(value: String) = _uiState.update { it.copy(confirmPassword = value, confirmPasswordError = null) }
+    fun updateTelefono(value: String) = _uiState.update {
+        it.copy(
+            telefono = ValidationUtils.filterPhoneInput(value),
+            telefonoError = null
+        )
+    }
+    fun showGerenteProfileForm() = _uiState.update { it.copy(showGerenteProfileForm = true) }
+    fun hideGerenteProfileForm() = _uiState.update { it.copy(showGerenteProfileForm = false) }
+
+    fun initGerenteProfileForm(user: User) {
+        _uiState.update {
+            it.copy(
+                nombre = user.nombre,
+                email = user.email,
+                password = "",
+                confirmPassword = "",
+                termsAccepted = false,
+                termsViewed = false,
+                showGerenteProfileForm = false
+            )
+        }
+    }
     fun updateTermsAccepted(value: Boolean) {
         _uiState.update {
             if (!it.termsViewed && value) it
@@ -116,7 +179,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 password = state.password.trim()
             ).fold(
                 onSuccess = { user ->
-                    if (user.rol == UserRole.ADMINISTRADOR) {
+                    if (user.rol == UserRole.SUPER_ADMIN) {
                         authRepository.seedSampleDataIfNeeded()
                     }
                     _uiState.update {
@@ -141,8 +204,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     fun register() {
         val state = _uiState.value
-        val nombreError = if (!ValidationUtils.isValidName(state.nombre)) "Nombre muy corto" else null
+        val nombreError = when {
+            state.nombre.trim().length < 3 -> "Mínimo 3 caracteres"
+            !ValidationUtils.isValidName(state.nombre) -> "Solo letras y espacios"
+            else -> null
+        }
         val emailError = if (!ValidationUtils.isValidEmail(state.email)) "Correo inválido" else null
+        val telefonoError = if (!ValidationUtils.isValidPhone(state.telefono)) {
+            "Ingrese 9 dígitos numéricos"
+        } else {
+            null
+        }
         val passwordError = if (!ValidationUtils.isValidPassword(state.password)) "Mínimo 6 caracteres" else null
         val confirmError = if (!ValidationUtils.passwordsMatch(state.password, state.confirmPassword))
             "Las contraseñas no coinciden" else null
@@ -152,13 +224,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             else -> null
         }
 
-        if (nombreError != null || emailError != null || passwordError != null ||
-            confirmError != null || termsError != null
+        if (nombreError != null || emailError != null || telefonoError != null ||
+            passwordError != null || confirmError != null || termsError != null
         ) {
             _uiState.update {
                 it.copy(
                     nombreError = nombreError,
                     emailError = emailError,
+                    telefonoError = telefonoError,
                     passwordError = passwordError,
                     confirmPasswordError = confirmError,
                     termsError = termsError
@@ -172,7 +245,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             authRepository.register(
                 nombre = state.nombre.trim(),
                 email = state.email.trim(),
-                password = state.password.trim()
+                password = state.password.trim(),
+                telefono = state.telefono.trim()
             ).fold(
                 onSuccess = { user ->
                     _uiState.update {
@@ -234,17 +308,73 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun completeGerenteProfile() {
+        val state = _uiState.value
+        val nombreError = if (!ValidationUtils.isValidName(state.nombre)) "Nombre muy corto" else null
+        val passwordError = if (!ValidationUtils.isValidPassword(state.password)) "Mínimo 6 caracteres" else null
+        val confirmError = if (!ValidationUtils.passwordsMatch(state.password, state.confirmPassword)) {
+            "Las contraseñas no coinciden"
+        } else {
+            null
+        }
+        val termsError = when {
+            !state.termsViewed -> "Debe leer los Términos y Condiciones"
+            !state.termsAccepted -> "Debe aceptar los Términos y Condiciones"
+            else -> null
+        }
+
+        if (nombreError != null || passwordError != null || confirmError != null || termsError != null) {
+            _uiState.update {
+                it.copy(
+                    nombreError = nombreError,
+                    passwordError = passwordError,
+                    confirmPasswordError = confirmError,
+                    termsError = termsError
+                )
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCompletingProfile = true, error = null) }
+            authRepository.completeGerenteProfile(
+                nombre = state.nombre.trim(),
+                password = state.password.trim(),
+                confirmPassword = state.confirmPassword.trim()
+            ).fold(
+                onSuccess = { user ->
+                    _uiState.update {
+                        it.copy(
+                            isCompletingProfile = false,
+                            currentUser = user,
+                            isAuthenticated = true,
+                            showGerenteProfileForm = false
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _uiState.update {
+                        it.copy(
+                            isCompletingProfile = false,
+                            error = e.message ?: "No se pudo actualizar el perfil"
+                        )
+                    }
+                }
+            )
+        }
+    }
+
     fun logout() {
         authRepository.logout()
         _uiState.update {
-            AuthUiState()
+            AuthUiState(isSessionReady = true)
         }
     }
 
     fun updateCurrentUser(user: User) {
-        val wasNotAdmin = _uiState.value.currentUser?.rol != UserRole.ADMINISTRADOR
+        val wasNotSuperAdmin = _uiState.value.currentUser?.rol != UserRole.SUPER_ADMIN
         _uiState.update { it.copy(currentUser = user) }
-        if (wasNotAdmin && user.rol == UserRole.ADMINISTRADOR) {
+        if (wasNotSuperAdmin && user.rol == UserRole.SUPER_ADMIN) {
             viewModelScope.launch {
                 authRepository.seedSampleDataIfNeeded()
             }

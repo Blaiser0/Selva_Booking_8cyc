@@ -1,0 +1,46 @@
+@startuml secuencia_administrador
+!theme plain
+title Selva Booking — Secuencia: Administrador (limitado)
+
+actor Administrador as A
+participant "Pantalla panel\nsupervisión" as DS
+participant "Pantalla hoteles" as HS
+participant "Pantalla reservas" as RS
+participant "Pantalla encargados" as GS
+participant "Modelo vista panel" as DVM
+participant "Modelo vista hoteles" as HVM
+participant "Modelo vista encargados" as GVM
+participant "Alcance administrador" as ADS
+participant "Repositorio autenticación" as AR
+participant "Servicio Firestore" as FS
+
+== Panel de supervisión ==
+
+A -> DS : abre panel de supervisión
+DVM -> AR : obtenerUsuarioActual()
+DVM -> FS : hoteles, reservas, reseñas
+DVM -> ADS : hotelesParaAdmin(idAdmin, encargados, hoteles)
+DVM -> ADS : reservasParaAdmin(...)
+DS --> A : métricas de su red
+
+== Consultar hoteles ==
+
+A -> HS : lista hoteles (solo lectura)
+HVM -> ADS : hotelesParaAdmin(...)
+HS --> A : hoteles + encargado vinculado
+
+== Consultar reservas ==
+
+A -> RS : reservas de su red
+RS -> ADS : reservasParaAdmin(...)
+RS --> A : Confirmada / Terminada
+
+== Crear encargado ==
+
+A -> GS : crear encargado
+GS -> GVM : crearEncargado()
+GVM -> AR : crearEncargadoHotel(correo, contraseña)
+AR -> FS : crearUsuario(creadoPorAdminId=idAdmin)
+GS --> A : encargado en su red
+
+@enduml

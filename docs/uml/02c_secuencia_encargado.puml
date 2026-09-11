@@ -1,0 +1,50 @@
+@startuml secuencia_encargado
+!theme plain
+title Selva Booking — Secuencia: Encargado de hotel
+
+actor "Encargado\nde hotel" as E
+participant "Pantalla completar\nperfil" as GP
+participant "Pantalla mi hotel" as MH
+participant "Pantalla habitaciones" as RS
+participant "Pantalla comentarios" as MR
+participant "Modelo vista\nautenticación" as AVM
+participant "Modelo vista hoteles" as HVM
+participant "Modelo vista comentarios" as MVM
+participant "Repositorio hoteles" as HR
+participant "Repositorio habitaciones" as RR
+participant "Repositorio auditoría" as AUD
+participant "Repositorio reseñas" as RSR
+participant "Servicio Firestore" as FS
+
+== Completar perfil ==
+
+E -> GP : datos obligatorios
+GP -> AVM : completarPerfilEncargado()
+AVM -> FS : actualizarUsuario(perfilCompleto=true)
+AVM --> MH : Mi Hotel
+
+== Gestionar mi hotel ==
+
+E -> MH : crea o edita hotel (máx. 1)
+MH -> HVM : guardarHotel()
+HVM -> HR : crearHotel / actualizarHotel
+HR -> FS : hoteles/{id}
+HVM -> AUD : registrarAuditoria(CREAR/ACTUALIZAR)
+
+== Gestionar habitaciones ==
+
+E -> RS : gestionar habitación e inventario
+RS -> RR : crearHabitacion / actualizarHabitacion
+RR -> FS : habitaciones/{id}
+RS -> AUD : registrarAuditoria()
+
+== Ver comentarios ==
+
+E -> MR : abrir comentarios
+MR -> MVM : inicializar
+MVM -> HR : obtenerHotelesDelPropietario(idUsuario)
+MVM -> RSR : obtenerResenasPorHotel(idHotel)
+RSR -> FS : resenas (tiempo real)
+MR --> E : listado de reseñas
+
+@enduml

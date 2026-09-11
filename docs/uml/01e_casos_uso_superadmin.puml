@@ -1,0 +1,98 @@
+@startuml casos_uso_superadmin
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+left to right direction
+title Selva Booking — Casos de uso: SuperAdmin
+
+actor "SuperAdmin" as SA
+actor "Firebase" as FB <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  package "Panel global" {
+    usecase "Panel global" as UC30S
+    usecase "Métricas ingresos\ny reservas" as UC30SA
+    usecase "Hoteles sin encargado\n/ sin admin" as UC30SB
+    usecase "Total comentarios\nglobales" as UC30SC
+  }
+
+  package "Hoteles y habitaciones" {
+    usecase "Gestionar hoteles\ny habitaciones" as UC31S
+    usecase "Crear / editar /\neliminar hotel" as UC31A
+    usecase "Filtrar hoteles\npor administrador" as UC31B
+    usecase "CRUD habitaciones\ne inventario" as UC31C
+    usecase "Ver encargado y\nadmin vinculado" as UC31D
+    usecase "Ver comentarios\npor hotel" as UC36
+  }
+
+  package "Reservas globales" {
+    usecase "Gestionar reservas\nglobales" as UC32S
+    usecase "Crear reserva\nmanual" as UC32A
+    usecase "Editar o eliminar\nreserva" as UC32B
+    usecase "Filtrar y buscar\nreservas" as UC32C
+    usecase "Terminar reserva\nanticipada" as UC32D
+  }
+
+  package "Cuentas del sistema" {
+    usecase "Gestionar todos\nlos encargados" as UC33S
+    usecase "Gestionar\nadministradores" as UC34
+    usecase "Crear cuenta\nadministrador" as UC34A
+    usecase "Eliminar\nadministrador" as UC34B
+  }
+
+  package "Auditoría" {
+    usecase "Auditoría\ndel sistema" as UC35
+    usecase "Consultar registro\nde cambios" as UC35A
+    usecase "Revertir cambio\nde encargado" as UC35B
+  }
+
+  package "Cuenta" {
+    usecase "Alternar a\nmodo cliente" as UC06
+    usecase "Cerrar sesión" as UC04
+    usecase "Mi cuenta" as UC14
+    usecase "Soporte y FAQ" as UC99
+  }
+}
+
+SA --> UC30S
+SA --> UC31S
+SA --> UC32S
+SA --> UC33S
+SA --> UC34
+SA --> UC35
+SA --> UC06
+SA --> UC04
+SA --> UC14
+SA --> UC99
+
+UC30S ..> UC30SA : <<incluye>>
+UC30S ..> UC30SB : <<incluye>>
+UC30S ..> UC30SC : <<incluye>>
+
+UC31A ..> UC31S : <<extiende>>
+UC31B ..> UC31S : <<extiende>>
+UC31C ..> UC31S : <<extiende>>
+UC31D ..> UC31S : <<extiende>>
+UC36 ..> UC31S : <<extiende>>
+
+UC32A ..> UC32S : <<extiende>>
+UC32B ..> UC32S : <<extiende>>
+UC32C ..> UC32S : <<extiende>>
+UC32D ..> UC32S : <<extiende>>
+
+UC34A ..> UC34 : <<extiende>>
+UC34B ..> UC34 : <<extiende>>
+
+UC35 ..> UC35A : <<incluye>>
+UC35B ..> UC35 : <<extiende>>
+
+UC30S ..> FB : <<incluye>>
+UC31S ..> FB : <<incluye>>
+UC32S ..> FB : <<incluye>>
+UC33S ..> FB : <<incluye>>
+UC34 ..> FB : <<incluye>>
+UC35 ..> FB : <<incluye>>
+UC36 ..> FB : <<incluye>>
+
+@enduml

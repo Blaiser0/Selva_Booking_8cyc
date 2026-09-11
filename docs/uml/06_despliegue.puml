@@ -1,0 +1,56 @@
+@startuml despliegue
+!theme plain
+title Selva Booking — Diagrama de despliegue
+
+node "Usuarios" as USERS {
+  artifact "Invitado / Cliente" as U1
+  artifact "Encargado de hotel" as U2
+  artifact "Administrador / SuperAdmin" as U3
+}
+
+node "Dispositivo Android\nSDK mínimo 24 · objetivo 36" as ANDROID {
+  artifact "APK Selva Booking\ncom.company.selvabooking" as APK
+
+  node "Entorno de ejecución" as RUNTIME {
+    component "Interfaz Jetpack Compose" as UI
+    component "Modelos de vista\nCorrutinas / StateFlow" as VM
+    component "Repositorios" as REPO
+    component "Pasarela simulada\n(validación local)" as PAY
+    database "Preferencias compartidas\ntarjeta guardada" as SP
+  }
+}
+
+cloud "Google Cloud — Firebase" as GCP {
+  node "Autenticación Firebase" as AUTH {
+    component "Correo / Contraseña" as EP
+  }
+
+  node "Cloud Firestore" as FS {
+    database "usuarios" as C1
+    database "hoteles" as C2
+    database "habitaciones" as C3
+    database "reservas" as C4
+    database "resenas" as C5
+    database "registros_auditoria" as C6
+  }
+
+  node "Almacenamiento Firebase" as STG {
+    component "Imágenes de hoteles" as IMG
+  }
+}
+
+U1 --> APK
+U2 --> APK
+U3 --> APK
+
+APK --> RUNTIME
+UI --> VM
+VM --> REPO
+VM --> PAY
+REPO --> SP
+
+REPO --> AUTH : HTTPS / SDK
+REPO --> FS : HTTPS / SDK
+REPO --> STG : HTTPS / SDK
+
+@enduml

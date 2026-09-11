@@ -1,0 +1,115 @@
+@startuml casos_de_uso_general
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+title Selva Booking — Casos de uso general (v2.1 — Jul 2026)
+
+left to right direction
+
+actor "Invitado" as INV
+actor "Cliente" as CLI
+actor "Encargado\nde hotel" as ENC
+actor "Administrador" as ADM
+actor "SuperAdmin" as SA
+actor "Firebase" as FB <<system>>
+actor "Pasarela\nsimulada" as PAY <<system>>
+
+rectangle "Sistema Selva Booking" {
+
+  package "Autenticación" {
+    usecase "UC-01 Iniciar sesión" as UC01
+    usecase "UC-02 Registrarse" as UC02
+    usecase "UC-03 Recuperar contraseña" as UC03
+    usecase "UC-04 Cerrar sesión" as UC04
+    usecase "UC-05 Completar perfil encargado" as UC05
+    usecase "UC-06 Alternar rol" as UC06
+  }
+
+  package "Cliente" {
+    usecase "UC-10 Explorar hoteles" as UC10
+    usecase "UC-11 Reservar y pagar" as UC11
+    usecase "UC-12 Mis reservas" as UC12
+    usecase "UC-13 Comentar hotel" as UC13
+    usecase "UC-14 Mi cuenta" as UC14
+  }
+
+  package "Encargado" {
+    usecase "UC-20 Gestionar mi hotel" as UC20
+    usecase "UC-21 Gestionar habitaciones\ny stock" as UC21
+    usecase "UC-22 Historial de reservas" as UC22
+    usecase "UC-23 Ver comentarios" as UC23
+  }
+
+  package "Administrador limitado" {
+    usecase "UC-30 Dashboard supervisión" as UC30
+    usecase "UC-31 Consultar hoteles" as UC31L
+    usecase "UC-32 Consultar reservas" as UC32L
+    usecase "UC-33 Gestionar encargados" as UC33L
+  }
+
+  package "SuperAdmin" {
+    usecase "UC-30s Dashboard global" as UC30S
+    usecase "UC-31s CRUD hoteles" as UC31S
+    usecase "UC-32s CRUD reservas" as UC32S
+    usecase "UC-33s Gestionar encargados" as UC33S
+    usecase "UC-34 Gestionar administradores" as UC34
+    usecase "UC-35 Auditoría" as UC35
+    usecase "UC-36 Comentarios por hotel" as UC36
+  }
+
+  usecase "UC-99 Soporte y FAQ" as UC99
+}
+
+INV --> UC01
+INV --> UC02
+INV --> UC03
+
+CLI --> UC04
+CLI --> UC10
+CLI --> UC11
+CLI --> UC12
+CLI --> UC13
+CLI --> UC14
+CLI --> UC99
+
+ENC --> UC04
+ENC --> UC05
+ENC --> UC06
+ENC --> UC20
+ENC --> UC21
+ENC --> UC22
+ENC --> UC23
+ENC --> UC14
+ENC --> UC99
+
+ADM --> UC04
+ADM --> UC06
+ADM --> UC30
+ADM --> UC31L
+ADM --> UC32L
+ADM --> UC33L
+ADM --> UC14
+ADM --> UC99
+
+SA --> UC04
+SA --> UC06
+SA --> UC30S
+SA --> UC31S
+SA --> UC32S
+SA --> UC33S
+SA --> UC34
+SA --> UC35
+SA --> UC36
+SA --> UC14
+SA --> UC99
+
+UC01 ..> FB : <<include>>
+UC11 ..> PAY : <<include>>
+UC11 ..> UC10 : <<extend>>
+UC21 ..> UC20 : <<extend>>
+UC23 ..> UC20 : <<extend>>
+UC36 ..> UC31S : <<extend>>
+UC35 ..> UC20 : <<extend>>
+
+@enduml

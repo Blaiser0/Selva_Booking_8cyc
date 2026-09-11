@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import com.company.selvabooking.domain.model.Reservation
 import com.company.selvabooking.ui.components.LoadingIndicator
 import com.company.selvabooking.ui.components.ReservationStatusFilterRow
-import com.company.selvabooking.ui.components.SelvaOutlinedButton
 import com.company.selvabooking.ui.components.SelvaScaffold
 import com.company.selvabooking.ui.components.SelvaTopAppBar
 import com.company.selvabooking.ui.components.StatusChip
@@ -46,11 +45,7 @@ fun MyReservationsScreen(viewModel: MyReservationsViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.cancelMessage, uiState.error) {
-        uiState.cancelMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearMessages()
-        }
+    LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
@@ -112,11 +107,7 @@ fun MyReservationsScreen(viewModel: MyReservationsViewModel) {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(uiState.filteredReservations) { reservation ->
-                            ReservationCard(
-                                reservation = reservation,
-                                canCancel = viewModel.canCancel(reservation),
-                                onCancel = { viewModel.cancelReservation(reservation.id) }
-                            )
+                            ReservationCard(reservation = reservation)
                         }
                     }
                 }
@@ -126,11 +117,7 @@ fun MyReservationsScreen(viewModel: MyReservationsViewModel) {
 }
 
 @Composable
-private fun ReservationCard(
-    reservation: Reservation,
-    canCancel: Boolean,
-    onCancel: () -> Unit
-) {
+private fun ReservationCard(reservation: Reservation) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -169,13 +156,6 @@ private fun ReservationCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            if (canCancel) {
-                Spacer(modifier = Modifier.height(12.dp))
-                SelvaOutlinedButton(
-                    text = "Cancelar reserva",
-                    onClick = onCancel
-                )
-            }
         }
     }
 }

@@ -26,13 +26,15 @@ data class ProfileUiState(
     val isLoading: Boolean = true,
     val user: User? = null,
     val nombre: String = "",
+    val telefono: String = "",
     val isEditing: Boolean = false,
     val isSaving: Boolean = false,
     val isUploadingPhoto: Boolean = false,
-    val showAdminRequestDialog: Boolean = false,
     val showSwitchToClientDialog: Boolean = false,
     val showSwitchToAdminDialog: Boolean = false,
+    val showSwitchToGerenteDialog: Boolean = false,
     val nombreError: String? = null,
+    val telefonoError: String? = null,
     val successMessage: String? = null,
     val error: String? = null,
     val savedPaymentCard: SavedPaymentCard? = null,
@@ -77,7 +79,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         it.copy(
                             isLoading = false,
                             user = user,
-                            nombre = user.nombre
+                            nombre = user.nombre,
+                            telefono = user.telefono
                         )
                     }
                     onSynced?.invoke(user)
@@ -100,7 +103,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             it.copy(
                 isEditing = true,
                 nombre = user.nombre,
+                telefono = user.telefono,
                 nombreError = null,
+                telefonoError = null,
                 successMessage = null,
                 error = null
             )
@@ -113,7 +118,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             it.copy(
                 isEditing = false,
                 nombre = user.nombre,
-                nombreError = null
+                telefono = user.telefono,
+                nombreError = null,
+                telefonoError = null
             )
         }
     }
@@ -122,19 +129,33 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(nombre = value, nombreError = null) }
     }
 
+    fun updateTelefono(value: String) {
+        _uiState.update { it.copy(telefono = value, telefonoError = null) }
+    }
+
     fun saveProfile(onSaved: (User) -> Unit) {
         val state = _uiState.value
         val user = state.user ?: return
         val nombreError = if (!ValidationUtils.isValidName(state.nombre)) "Nombre muy corto" else null
+        val telefonoError = if (!ValidationUtils.isValidPhone(state.telefono)) {
+            "Ingrese un teléfono válido (mínimo 9 dígitos)"
+        } else {
+            null
+        }
 
-        if (nombreError != null) {
-            _uiState.update { it.copy(nombreError = nombreError) }
+        if (nombreError != null || telefonoError != null) {
+            _uiState.update {
+                it.copy(nombreError = nombreError, telefonoError = telefonoError)
+            }
             return
         }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null, successMessage = null) }
-            val updatedUser = user.copy(nombre = state.nombre.trim())
+            val updatedUser = user.copy(
+                nombre = state.nombre.trim(),
+                telefono = state.telefono.trim()
+            )
             authRepository.updateUserProfile(updatedUser).fold(
                 onSuccess = { savedUser ->
                     val resolvedUser = authRepository.getCurrentUserData().getOrElse { savedUser }
@@ -144,6 +165,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                             isEditing = false,
                             user = resolvedUser,
                             nombre = resolvedUser.nombre,
+                            telefono = resolvedUser.telefono,
                             successMessage = "Perfil actualizado"
                         )
                     }
@@ -190,30 +212,19 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun onAccountTypeTripleTap() {
         val user = _uiState.value.user ?: return
         when {
-            user.rol == UserRole.ADMINISTRADOR -> {
+            user.rol == UserRole.GERENTE_HOTEL ||
+                user.rol == UserRole.ADMINISTRADOR ||
+                user.rol == UserRole.SUPER_ADMIN -> {
                 _uiState.update { it.copy(showSwitchToClientDialog = true) }
             }
-            user.puedeAlternarRol -> {
+            user.rol == UserRole.CLIENTE &&
+                user.rolAlternativo == UserRole.GERENTE_HOTEL.value -> {
+                _uiState.update { it.copy(showSwitchToGerenteDialog = true) }
+            }
+            user.rol == UserRole.CLIENTE && user.puedeAlternarRol -> {
                 _uiState.update { it.copy(showSwitchToAdminDialog = true) }
             }
-            user.hasPendingAdminRequest -> {
-                _uiState.update {
-                    it.copy(successMessage = "Tu solicitud de administrador ya está pendiente")
-                }
-            }
-            user.hasRejectedAdminRequest -> {
-                _uiState.update {
-                    it.copy(error = "Tu solicitud de administrador fue rechazada")
-                }
-            }
-            else -> {
-                _uiState.update { it.copy(showAdminRequestDialog = true) }
-            }
         }
-    }
-
-    fun dismissAdminRequestDialog() {
-        _uiState.update { it.copy(showAdminRequestDialog = false) }
     }
 
     fun dismissSwitchToClientDialog() {
@@ -222,6 +233,40 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun dismissSwitchToAdminDialog() {
         _uiState.update { it.copy(showSwitchToAdminDialog = false) }
+    }
+
+    fun dismissSwitchToGerenteDialog() {
+        _uiState.update { it.copy(showSwitchToGerenteDialog = false) }
+    }
+
+    fun confirmSwitchToGerenteRole(onSaved: (User) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    showSwitchToGerenteDialog = false,
+                    isSaving = true,
+                    error = null,
+                    successMessage = null
+                )
+            }
+            authRepository.switchToGerenteRole().fold(
+                onSuccess = { updatedUser ->
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            user = updatedUser,
+                            successMessage = "Modo encargado del hotel activado"
+                        )
+                    }
+                    onSaved(updatedUser)
+                },
+                onFailure = { e ->
+                    _uiState.update {
+                        it.copy(isSaving = false, error = e.message ?: "No se pudo cambiar el rol")
+                    }
+                }
+            )
+        }
     }
 
     fun confirmSwitchToClientRole(onSaved: (User) -> Unit) {
@@ -278,39 +323,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 onFailure = { e ->
                     _uiState.update {
                         it.copy(isSaving = false, error = e.message ?: "No se pudo cambiar el rol")
-                    }
-                }
-            )
-        }
-    }
-
-    fun confirmAdminAccessRequest(onSaved: (User) -> Unit) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    showAdminRequestDialog = false,
-                    isSaving = true,
-                    error = null,
-                    successMessage = null
-                )
-            }
-            authRepository.requestAdminAccess().fold(
-                onSuccess = { updatedUser ->
-                    _uiState.update {
-                        it.copy(
-                            isSaving = false,
-                            user = updatedUser,
-                            successMessage = "Solicitud enviada. Un administrador revisará tu petición."
-                        )
-                    }
-                    onSaved(updatedUser)
-                },
-                onFailure = { e ->
-                    _uiState.update {
-                        it.copy(
-                            isSaving = false,
-                            error = e.message ?: "No se pudo enviar la solicitud"
-                        )
                     }
                 }
             )
